@@ -1,13 +1,24 @@
 "use client"
 
 import { FileUp } from "lucide-react";
-
 import Navigation from "@/components/dashboard/Navigation";
-import GaugeChart from "@/components/dashboard/GaugeChart";
-import TrendAccuracyChart from "@/components/dashboard/LineChartForecast";
-import ComparisonBarChart from "@/components/dashboard/BarChartComparison";
 
-export default function ExecutiveSummary() {
+export default function TrendAnalysis() {
+  // Data dummy berdasarkan gambar referensi trend analysis
+  const trendData = [
+    { year: 2025, month: "January", overall: "74%", fish: "75%", shrimp: "70%", best: "MDN", worst: "LPG" },
+    { year: 2025, month: "February", overall: "72%", fish: "74%", shrimp: "66%", best: "MDN", worst: "SBY" },
+    { year: 2025, month: "March", overall: "73%", fish: "76%", shrimp: "62%", best: "SPJ", worst: "SBY" },
+    { year: 2025, month: "April", overall: "72%", fish: "75%", shrimp: "66%", best: "MDN", worst: "SBY" },
+    { year: 2025, month: "May", overall: "70%", fish: "72%", shrimp: "64%", best: "MDN", worst: "SBY" },
+    { year: 2025, month: "June", overall: "71%", fish: "74%", shrimp: "61%", best: "SPJ", worst: "SBY" },
+    { year: 2025, month: "July", overall: "71%", fish: "74%", shrimp: "66%", best: "CKP", worst: "LPG" },
+    { year: 2025, month: "August", overall: "70%", fish: "72%", shrimp: "65%", best: "MDN", worst: "SBY" },
+    { year: 2025, month: "September", overall: "71%", fish: "74%", shrimp: "64%", best: "MDN", worst: "SBY" },
+    { year: 2025, month: "October", overall: "69%", fish: "70%", shrimp: "66%", best: "CKP", worst: "SBY" },
+    { year: 2025, month: "November", overall: "59%", fish: "59%", shrimp: "61%", best: "CKP", worst: "SBY" },
+  ];
+
   return (
     <main className="min-h-screen bg-slate-50">
 
@@ -49,7 +60,7 @@ export default function ExecutiveSummary() {
 
             {/* Filter Group - Posisinya di kiri (Desktop) atau bawah (Mobile) */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-               {["Plant Area", "Year", "Month", "Week"].map((label) => (
+               {["Year", "Month"].map((label) => (
                  <div key={label} className="w-32 bg-white text-slate-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-md flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
                    <span>{label}</span>
                    <span className="text-[10px] opacity-40">▼</span>
@@ -87,29 +98,47 @@ export default function ExecutiveSummary() {
         </div>
       </header>
 
-      {/* CONTENT SECTION (Executive Summary) */}
-      <div className="max-w-7xl mx-auto px-8 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <GaugeChart title="Overall Accuracy" value={69} />
-          <GaugeChart title="Fish Segment" value={72} />
-          <GaugeChart title="Shrimp Segment" value={65} />
+      {/* CONTENT SECTION - Tabel Trend Analysis */}
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200">
+          <div className="overflow-x-auto text-slate-700">
+            <table className="w-full text-left text-[11px] border-collapse">
+              <thead>
+                <tr className="bg-[#00C9A7] text-white uppercase tracking-wider font-bold">
+                  <th className="px-4 py-3 border-r border-white/10">Year</th>
+                  <th className="px-4 py-3 border-r border-white/10">Month</th>
+                  <th className="px-4 py-3 border-r border-white/10 text-center">Overall Accuracy</th>
+                  <th className="px-4 py-3 border-r border-white/10 text-center">Fish Accuracy</th>
+                  <th className="px-4 py-3 border-r border-white/10 text-center">Shrimp Accuracy</th>
+                  <th className="px-4 py-3 border-r border-white/10 text-center">Best Performing Plant</th>
+                  <th className="px-4 py-3 text-center">Worst Performing Plant</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {trendData.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors odd:bg-white even:bg-slate-50/30">
+                    <td className="px-4 py-3 border-r border-slate-100">{row.year}</td>
+                    <td className="px-4 py-3 border-r border-slate-100 font-medium">{row.month}</td>
+                    <td className="px-4 py-3 border-r border-slate-100 text-center font-bold">{row.overall}</td>
+                    <td className="px-4 py-3 border-r border-slate-100 text-center">{row.fish}</td>
+                    <td className="px-4 py-3 border-r border-slate-100 text-center">{row.shrimp}</td>
+                    <td className="px-4 py-3 border-r border-slate-100 text-center font-semibold text-teal-600">{row.best}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-red-600">{row.worst}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrendAccuracyChart />
-          <ComparisonBarChart />
-        </div>
-
       </div>
 
-      {/* Footer */}
       <footer className="text-center text-xs text-slate-500 py-6 mt-10 border-t border-slate-200">
         © 2025 Digital Production | National Supply Chain
         {/* <div className="mt-1">
           <Link href="#" className="hover:underline mx-1">Data Last Updated: 12/19/2023 1:12:35 AM</Link> | 
           <Link href="#" className="hover:underline mx-1">Privacy Policy</Link>
         </div> */}
-      </footer>      
+      </footer> 
     </main>
   );
 }

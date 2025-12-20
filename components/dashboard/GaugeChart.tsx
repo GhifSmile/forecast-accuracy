@@ -16,19 +16,19 @@ export default function GaugeChart({ value, title }: Props) {
     <Card className="bg-white border-none shadow-sm">
         
       <CardHeader className="pb-0 pt-2 px-4 flex flex-col items-center justify-center">
-        <CardTitle className="text-[12px] font-bold text-slate-400 uppercase tracking-widest text-center">
+        <CardTitle className="text-[12px] font-bold text-black uppercase tracking-widest text-center">
           {title}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="h-[180px] flex flex-col items-center justify-center">
+      <CardContent className="h-[200] flex flex-col items-center justify-center">
         <GaugeComponent
           value={value}
           type="radial"
           style={{ 
               width: "100%", 
-              maxWidth: "250px", // Mencegah gauge terlalu raksasa di mobile
-              margin: "0 auto" 
+              maxWidth: "260px", // Mencegah gauge terlalu raksasa di mobile
+              margin: "0 auto",
             }}
           labels={{
             valueLabel: {
@@ -40,6 +40,14 @@ export default function GaugeChart({ value, title }: Props) {
             },
             tickLabels: {
               type: "outer",
+              defaultTickValueConfig: {
+                formatTextValue: (value: any) => `${value}%`,
+                style: {
+                    fill: "#000000", // Warna hitam pekat
+                    textShadow: "none",
+                    fontSize: 7,
+                }
+              },
               ticks: [
                 { value: 20 },
                 { value: 40 },
