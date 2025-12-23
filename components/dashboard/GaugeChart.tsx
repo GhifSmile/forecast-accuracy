@@ -32,6 +32,7 @@ export default function GaugeChart({ value, title }: Props) {
             }}
           labels={{
             valueLabel: {
+                formatTextValue: (val: number) => `${val.toFixed(0)}%`,
                 style: {
                     fill: "#000000",      // Warna tulisan hitam
                     textShadow: "none",   // Menghilangkan shadow
@@ -41,7 +42,7 @@ export default function GaugeChart({ value, title }: Props) {
             tickLabels: {
               type: "outer",
               defaultTickValueConfig: {
-                formatTextValue: (value: any) => `${value}%`,
+                formatTextValue: (value: number) => `${value.toFixed(0)}%`,
                 style: {
                     fill: "#000000", // Warna hitam pekat
                     textShadow: "none",
@@ -49,11 +50,10 @@ export default function GaugeChart({ value, title }: Props) {
                 }
               },
               ticks: [
-                { value: 20 },
-                { value: 40 },
-                { value: 60 },
-                { value: 80 },
-                { value: 100 }
+                { value: 25 },
+                { value: 50 },
+                { value: 75 },
+                { value: 100 },
               ]
             }
           }}
