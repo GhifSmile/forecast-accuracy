@@ -2,23 +2,19 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Line, Legend } from 'recharts';
+import { MonthlyTrendData } from "@/services/forecastAccuracy"; // Sesuaikan path import
 
-const data = [
-  { month: 'Jan', 'Overall Accuracy': 70, 'Target': 75 },
-  { month: 'Feb', 'Overall Accuracy': 72, 'Target': 75 },
-  { month: 'Mar', 'Overall Accuracy': 68, 'Target': 75 },
-  { month: 'Apr', 'Overall Accuracy': 65, 'Target': 75 },
-  { month: 'May', 'Overall Accuracy': 69, 'Target': 75 },
-  { month: 'Jun', 'Overall Accuracy': 71, 'Target': 75 },
-  { month: 'Jul', 'Overall Accuracy': 70, 'Target': 75 },
-  { month: 'Aug', 'Overall Accuracy': 73, 'Target': 75 },
-  { month: 'Sep', 'Overall Accuracy': 69, 'Target': 75 },
-  { month: 'Oct', 'Overall Accuracy': 58, 'Target': 75 },
-  { month: 'Nov', 'Overall Accuracy': 55, 'Target': 75 },
-  { month: 'Dec', 'Overall Accuracy': 60, 'Target': 75 },
-];
+interface Props {
+  data: MonthlyTrendData[];
+}
 
-export default function TrendAccuracyChart() {
+export default function TrendAccuracyChart({ data }: Props) {
+
+  const chartData = data.map(item => ({
+    ...item,
+    Target: 75 // Sesuai target overall yang Anda inginkan
+  }));
+
   return (
     <Card className="shadow-sm rounded-xl overflow-visible">
       <CardHeader>
@@ -27,7 +23,7 @@ export default function TrendAccuracyChart() {
       {/* Tinggi disesuaikan ke 350px agar ada ruang untuk legend di bawah */}
       <CardContent className="h-[350px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 30, left: -15, bottom: 20 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 30, left: -15, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
             
             <XAxis 
@@ -43,19 +39,20 @@ export default function TrendAccuracyChart() {
               tickFormatter={(value) => `${value}%`} 
               tickLine={false} 
               axisLine={false} 
-              domain={[50, 80]} 
+              domain={[50, 100]} 
               fontSize={10} // Mengecilkan ukuran font label Y
               className="text-slate-500 font-medium"
             />
             
             <Tooltip 
               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-              formatter={(value: number | string | undefined) => {
-                // Menangani kasus jika nilai kosong/undefined
-                if (value === undefined) return ["0%", "Accuracy"];
-                
-                // Mengembalikan format [Nilai_Teks, Nama_Label]
-                return [`${value}%`, "Accuracy"];
+              formatter={(value: number | string | undefined, labelName: any) => {
+                if (value === undefined) return ["0.00%", labelName ?? "Accuracy"];
+
+                const formattedValue = Number(value).toFixed(2);
+
+                // labelName ?? "Accuracy" memastikan jika name undefined, tooltip tidak pecah
+                return [`${formattedValue}%`, labelName];
               }}  
               cursor={{ stroke: '#cccccc', strokeWidth: 1 }}
             />
@@ -74,20 +71,26 @@ export default function TrendAccuracyChart() {
 
             {/* Area untuk Accuracy */}
             <Area 
-              type="monotone" 
-              dataKey="Overall Accuracy" 
-              stroke="#10B981" 
+              type="linear" 
+              dataKey="overallAccuracy" 
+              stroke="#00acc1" 
+              dot={{ 
+                  r: 4,               // Ukuran radius titik
+                  fill: "#00acc1",    // Warna isi titik (samakan dengan stroke)
+                  strokeWidth: 0,     // Menghilangkan border agar terlihat full solid
+                  fillOpacity: 1      // Memastikan warna titik tidak transparan
+                }}
               fillOpacity={0.1} 
-              fill="#10B981" 
+              fill="#00acc1" 
               strokeWidth={2} 
               name="Overall Accuracy"
             />
             
             {/* Line untuk Target - Menggunakan dataKey yang sama di dalam AreaChart */}
             <Line 
-              type="monotone" 
+              type="linear" 
               dataKey="Target" 
-              stroke="#FF8C00" 
+              stroke="#f04487" 
               strokeDasharray="5 5" 
               strokeWidth={1.5} 
               dot={false} 

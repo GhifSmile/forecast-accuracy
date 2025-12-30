@@ -18,9 +18,13 @@ export default async function PerformanceDetailPage({
       <header className="bg-[#FF8C00] pt-4 pb-6 px-6 text-white shadow-lg">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row justify-between items-center lg:items-start gap-4 text-center lg:text-left">
-            <div className="flex flex-col items-center lg:items-start gap-3">
-              <div className="relative w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center border border-white/30 overflow-hidden flex-shrink-0">
-                <div className="text-[10px] opacity-50 text-center px-1">Image Area</div>
+            <div className="flex flex-col items-center lg:items-start gap-0">
+              <div className="relative h-24 md:h-32 w-auto overflow-hidden flex-shrink-0">
+                <img 
+                  src="/image_png_1.PNG"
+                  alt="Logo" 
+                  className="h-full w-auto object-contain object-left opacity-20 scale-120" // Opacity 70% dan object-contain agar proporsi terjaga
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tighter uppercase">

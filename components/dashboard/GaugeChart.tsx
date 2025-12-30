@@ -9,9 +9,36 @@ const GaugeComponent = dynamic(() => import('react-gauge-component'), { ssr: fal
 interface Props {
   value: number;
   title: string;
+  type: 'overall' | 'fish' | 'shrimp';
 }
 
-export default function GaugeChart({ value, title }: Props) {
+export default function GaugeChart({ value, title, type }: Props) {
+
+  const getArcConfig = () => {
+    switch (type) {
+      case 'overall':
+        return [
+          { limit: 60, color: '#f04487' }, // Merah (0 - 60)
+          { limit: 75, color: '#fbb92c' }, // Kuning (60 - 75)
+          { limit: 100, color: '#02d1a7' } // Hijau (75 - 100)
+        ];
+      case 'fish':
+        return [
+          { limit: 60, color: '#f04487' }, // Merah (0 - 60)
+          { limit: 78, color: '#fbb92c' }, // Kuning (60 - 78)
+          { limit: 100, color: '#02d1a7' } // Hijau (78 - 100)
+        ];
+      case 'shrimp':
+        return [
+          { limit: 60, color: '#f04487' }, // Merah (0 - 60)
+          { limit: 70, color: '#fbb92c' }, // Kuning (60 - 70)
+          { limit: 100, color: '#02d1a7' } // Hijau (70 - 100)
+        ];
+      default:
+        return [];
+    }
+  };
+
   return (
     <Card className="bg-white border-none shadow-sm">
         
@@ -58,14 +85,19 @@ export default function GaugeChart({ value, title }: Props) {
             }
           }}
           arc={{
-            colorArray: ['#5BE12C','#EA4228'], // Warna sesuai request Anda
-            subArcs: [{limit: 10}, {limit: 30}, {}, {}, {}],
+            subArcs: getArcConfig(),
             padding: 0.02,
-            width: 0.3
+            width: 0.3,
+            cornerRadius: 0
           }}
           pointer={{
             elastic: true,
-            animationDelay: 0
+            animationDelay: 0,
+            type: "needle",
+            color: '#000000',     // Warna biru gelap charcoal
+            baseColor: '#000000', // Warna poros sama dengan jarum
+            width: 15,         // Sedikit lebih tebal agar terlihat tegas
+            length: 0.75,            
           }}
         />
         {/* Label Angka di Bawah Gauge */}

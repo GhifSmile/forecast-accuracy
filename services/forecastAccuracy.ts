@@ -33,10 +33,16 @@ interface TrendAnalysisRow {
 }
 
 interface RawDataRow {
+  year: number;
+  month: number;
+  // week: number;
+  plant: string;
+  business_unit: string;
+  // category: string;
   code: string;
   forecast: number;
+  // produksi: number;
   sales: number;
-  business_unit: string;
 }
 
 interface AccuracyFilters {
@@ -64,6 +70,18 @@ export interface TrendAnalysisData {
   shrimpAccuracy: number;  // Ubah ke number agar sesuai interface Anda
   bestPerforming: string;
   worstPerforming: string;
+}
+
+export interface MonthlyTrendData {
+  month: string;       // "Jan", "Feb", dst
+  overallAccuracy: number;
+}
+
+export interface PlantComparisonData {
+  plant: string;
+  overallAccuracy: number;
+  fishAccuracy: number;
+  shrimpAccuracy: number;
 }
 
 // Helper
@@ -209,7 +227,7 @@ export const ForecastAccuracyService = {
       const plantClause = filters.plant ? sql`AND plant = ${filters.plant}` : sql``;
 
       const result = await db.execute(sql`
-        SELECT code, forecast, sales, business_unit 
+        SELECT year, month, plant, business_unit, code, forecast, sales
         FROM data_collection_forecast_accuracy
         WHERE year = ${filters.year}
         ${monthClause}
@@ -237,6 +255,141 @@ export const ForecastAccuracyService = {
   getShrimpAccuracy: async (filters: AccuracyFilters): Promise<number> => {
     const data = await ForecastAccuracyService.getForecastAccuracyData(filters);
     return calculateAccuracyByUnit(data, 'shrimp') * 100;
-  }  
+  },  
+
+  getMonthlyTrendData: async (filters: AccuracyFilters): Promise<MonthlyTrendData[]> => {
+    try {
+      const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      const rawData = await ForecastAccuracyService.getForecastAccuracyData(filters);
+
+      if (!rawData || rawData.length === 0) {
+        return shortMonths.map(name => ({ month: name, overallAccuracy: 0 }));
+      }
+
+      // 2. Kita hitung manual per bulan agar return-nya berupa array fluktuatif
+      return shortMonths.map((name, index) => {
+        const monthNumber = index + 1;
+        const monthData = rawData.filter(d => Number(d.month) === monthNumber);
+
+        if (monthData.length === 0) {
+          return { month: name, overallAccuracy: 0 };
+        }
+
+        // --- LOGIC AGREGASI RAW DATA PER BULAN ---
+        // Kelompokkan per 'code' untuk bulan ini saja
+        const summaryMap = new Map<string, { sum_f: number; sum_s: number }>();
+
+        for (const row of monthData) {
+          const key = row.code;
+          const current = summaryMap.get(key) || { sum_f: 0, sum_s: 0 };
+          current.sum_f += Number(row.forecast) || 0;
+          current.sum_s += Number(row.sales) || 0;
+          summaryMap.set(key, current);
+        }
+
+        const validErrors: number[] = [];
+        for (const summary of summaryMap.values()) {
+          const { sum_f, sum_s } = summary;
+          let validErrorValue = 0.0;
+        
+          if (sum_f <= 0 || sum_s <= 0) {
+            validErrorValue = 0.0;
+          } else {
+            const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
+            // Jika error > 100%, maka dianggap 0.0
+            validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+          }
+        
+          if (validErrorValue > 0) {
+            validErrors.push(validErrorValue);
+          }
+        }
+
+        const accuracy = validErrors.length > 0 
+          ? (1.0 - (validErrors.reduce((a, b) => a + b, 0) / validErrors.length)) * 100
+          : 0;
+
+        return {
+          month: name,
+          overallAccuracy: Number(accuracy.toFixed(2))
+        };
+      });
+    } catch (error) {
+      console.error("Error in getMonthlyTrendData:", error);
+      return [];
+    }
+  },
+
+  getPlantComparison: async (filters: AccuracyFilters): Promise<PlantComparisonData[]> => {
+    try {
+      // 1. Ambil data mentah sesuai filter (Year, Month, dll)
+      const rawData = await ForecastAccuracyService.getForecastAccuracyData(filters);
+
+      if (!rawData || rawData.length === 0) return [];
+
+      // 2. Dapatkan list plant unik
+      const plants = Array.from(new Set(rawData.map(d => d.plant))).filter(Boolean);
+
+      // 3. Helper function internal untuk menghitung akurasi per segment (Overall/Fish/Shrimp)
+      const calculateInternalAccuracy = (data: RawDataRow[], businessUnit: string | null) => {
+        // Filter berdasarkan Business Unit jika diminta (fish/shrimp)
+        const filtered = businessUnit 
+          ? data.filter(d => d.business_unit?.toLowerCase() === businessUnit.toLowerCase())
+          : data;
+
+        if (filtered.length === 0) return 0;
+
+        // Agregasi per CODE (SKU)
+        const summaryMap = new Map<string, { f: number; s: number }>();
+        for (const row of filtered) {
+          const current = summaryMap.get(row.code) || { f: 0, s: 0 };
+          current.f += Number(row.forecast) || 0;
+          current.s += Number(row.sales) || 0;
+          summaryMap.set(row.code, current);
+        }
+
+        // Logic validasi error sesuai instruksi Anda
+        const validErrors: number[] = [];
+        for (const summary of summaryMap.values()) {
+          const { f, s } = summary;
+          let validErrorValue = 0.0;
+
+          if (f <= 0 || s <= 0) {
+            validErrorValue = 0.0;
+          } else {
+            const rawErrorRate = Math.abs(f - s) / f;
+            validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+          }
+
+          // Jika > 0 maka masuk hitungan rata-rata (length bertambah)
+          if (validErrorValue > 0) {
+            validErrors.push(validErrorValue);
+          }
+        }
+
+        const acc = validErrors.length > 0 
+          ? (1.0 - (validErrors.reduce((a, b) => a + b, 0) / validErrors.length)) * 100
+          : 0;
+
+        return Number(acc.toFixed(2));
+      };
+
+      // 4. Map hasil untuk setiap plant
+      return plants.map(plantName => {
+        const plantData = rawData.filter(d => d.plant === plantName);
+
+        return {
+          plant: plantName,
+          overallAccuracy: calculateInternalAccuracy(plantData, null),
+          fishAccuracy: calculateInternalAccuracy(plantData, 'fish'),
+          shrimpAccuracy: calculateInternalAccuracy(plantData, 'shrimp'),
+        };
+      });
+    } catch (error) {
+      console.error("Error in getPlantComparison:", error);
+      return [];
+    }
+  },  
 
 };

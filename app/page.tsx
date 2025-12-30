@@ -25,10 +25,12 @@ export default async function ExecutiveSummary({
 
   // 2. Ambil data akurasi menggunakan Method baru (Raw Query)
   // Data sudah otomatis dikali 100 oleh service
-  const [overallAcc, fishAcc, shrimpAcc] = await Promise.all([
+  const [overallAcc, fishAcc, shrimpAcc, monthlyTrend, plantComparison] = await Promise.all([
     ForecastAccuracyService.getOverallAccuracy(filters),
     ForecastAccuracyService.getFishAccuracy(filters),
     ForecastAccuracyService.getShrimpAccuracy(filters),
+    ForecastAccuracyService.getMonthlyTrendData(filters), // Mengambil tren 12 bulan
+    ForecastAccuracyService.getPlantComparison(filters), // Mengambil perbandingan plant
   ]);
 
   return (
@@ -40,9 +42,14 @@ export default async function ExecutiveSummary({
           
           <div className="flex flex-col lg:flex-row justify-between items-center lg:items-start gap-4 text-center lg:text-left">
             
-            <div className="flex flex-col items-center lg:items-start gap-3">
-              <div className="relative w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center border border-white/30 overflow-hidden flex-shrink-0">
-                <div className="text-[10px] opacity-50 text-center px-1">Image Area</div>
+            <div className="flex flex-col items-center lg:items-start gap-0">
+
+              <div className="relative h-24 md:h-32 w-auto overflow-hidden flex-shrink-0">
+                <img 
+                  src="/image_png_1.PNG"
+                  alt="Logo" 
+                  className="h-full w-auto object-contain object-left opacity-20 scale-120" // Opacity 70% dan object-contain agar proporsi terjaga
+                />
               </div>
 
               <div>
@@ -89,15 +96,15 @@ export default async function ExecutiveSummary({
       <div className="max-w-7xl mx-auto px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Menggunakan nilai asli dari Service yang sudah dikali 100 */}
-          <GaugeChart title="Overall Accuracy" value={overallAcc} />
-          <GaugeChart title="Fish Segment" value={fishAcc} />
-          <GaugeChart title="Shrimp Segment" value={shrimpAcc} />
+          <GaugeChart title="Overall Accuracy" value={overallAcc} type="overall"/>
+          <GaugeChart title="Fish Segment" value={fishAcc} type="fish"/>
+          <GaugeChart title="Shrimp Segment" value={shrimpAcc} type="shrimp"/>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Anda bisa meneruskan filter ke chart jika diperlukan nantinya */}
-          <TrendAccuracyChart />
-          <ComparisonBarChart />
+          <TrendAccuracyChart data={monthlyTrend}/>
+          <ComparisonBarChart data={plantComparison}/>
         </div>
 
       </div>
