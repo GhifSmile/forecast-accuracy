@@ -1,4 +1,3 @@
-// src/components/ComparisonBarChart.tsx
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,12 +5,12 @@ import { MoveLeft } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Line } from 'recharts';
 import { PlantComparisonData } from "@/services/forecastAccuracy";
 
-interface ComparisonBarChartProps {
+interface Props {
   data: PlantComparisonData[];
 }
 
 
-export default function ComparisonBarChart({ data }: ComparisonBarChartProps) {
+export default function ComparisonBarChart({ data }: Props) {
   const tooltipOrder = ["Overall Accuracy", "Fish Accuracy", "Shrimp Accuracy"];
 
   const sortedData = [...data].sort((a, b) => a.overallAccuracy - b.overallAccuracy);
@@ -76,7 +75,7 @@ export default function ComparisonBarChart({ data }: ComparisonBarChartProps) {
               }} 
             />       
 
-            <ReferenceLine 
+            {/* <ReferenceLine 
               y={75} 
               stroke="#f04487" 
               strokeDasharray="5 5" 
@@ -91,7 +90,7 @@ export default function ComparisonBarChart({ data }: ComparisonBarChartProps) {
                 dx: -5,  // Geser 10px ke kanan agar tidak menempel sumbu Y
                 dy: -20  // Geser 10px ke atas agar tidak menempel garis dashed
               }} 
-            />
+            /> */}
             
             <Bar name="Overall Accuracy" dataKey="overallAccuracy" fill="#00acc1" radius={[2, 2, 0, 0]} />
             <Bar name="Fish Accuracy" dataKey="fishAccuracy" fill="#ff8c00" radius={[2, 2, 0, 0]} />

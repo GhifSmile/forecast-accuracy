@@ -24,6 +24,14 @@ export default function TrendAccuracyChart({ data }: Props) {
       <CardContent className="h-[350px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 30, left: -15, bottom: 20 }}>
+
+            <defs>
+              <linearGradient id="colorAccuracy" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#00acc1" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#00acc1" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
             
             <XAxis 
@@ -80,8 +88,8 @@ export default function TrendAccuracyChart({ data }: Props) {
                   strokeWidth: 0,     // Menghilangkan border agar terlihat full solid
                   fillOpacity: 1      // Memastikan warna titik tidak transparan
                 }}
-              fillOpacity={0.1} 
-              fill="#00acc1" 
+              fillOpacity={1} 
+              fill="url(#colorAccuracy)" 
               strokeWidth={2} 
               name="Overall Accuracy"
             />
