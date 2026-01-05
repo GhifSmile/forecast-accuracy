@@ -35,7 +35,7 @@ interface TrendAnalysisRow {
 interface RawDataRow {
   year: number;
   month: number;
-  // week: number;
+  week: number;
   plant: string;
   business_unit: string;
   // category: string;
@@ -46,10 +46,10 @@ interface RawDataRow {
 }
 
 interface AccuracyFilters {
-  year: number;
-  month?: number;
-  // week?: number;
-  plant?: string;
+  year: number;   // Array untuk multi-select
+  months?: number[]; // Array untuk multi-select
+  plants?: string[]; // Array untuk multi-select
+  week?: number
 }
 
 // --- INTERFACES FOR UI (Camel Case) ---
@@ -74,6 +74,11 @@ export interface TrendAnalysisData {
 
 export interface MonthlyTrendData {
   month: string;       // "Jan", "Feb", dst
+  overallAccuracy: number;
+}
+
+export interface WeeklyTrendData {
+  week: string;
   overallAccuracy: number;
 }
 
@@ -143,8 +148,21 @@ function calculateAccuracyByUnit(data: RawDataRow[], businessUnitFilter: string 
 
 // --- SERVICE OBJECT ---
 export const ForecastAccuracyService = {
-  getMonthlyPerformance: async (year?: number): Promise<MonthlyPerformanceData[]> => {
-    const targetYear = year || new Date().getFullYear();
+
+  getFilterOptions: async () => {
+    const result = await db.execute(sql`
+      SELECT DISTINCT year FROM data_collection_forecast_accuracy 
+      ORDER BY year DESC
+    `);
+    return {
+      year: (result as any).map((r: any) => Number(r.year)),
+      plants: ["CKP", "LPG", "MDN", "SBY", "SPJ"],
+      months: monthNames.map((name, i) => ({ id: i + 1, name }))
+    };
+  },
+
+  getMonthlyPerformance: async (filters: AccuracyFilters): Promise<MonthlyPerformanceData[]> => {
+    const targetYear = filters.year;
     try {
       const result = await db.execute(sql`
         SELECT * FROM plant_performance_detail_monthly
@@ -181,11 +199,14 @@ export const ForecastAccuracyService = {
     }
   },
 
-  getTrendAnalysis: async (year?: number, month?: number): Promise<TrendAnalysisData[]> => {
-    const targetYear = year || new Date().getFullYear();
+  getTrendAnalysis: async (filters: AccuracyFilters): Promise<TrendAnalysisData[]> => {
+    const targetYear = filters.year;
+    const targetMonths = filters.months;
     try {
       // Pastikan query tetap menggunakan sintaks yang benar untuk parameter opsional
-      const monthCondition = month ? sql`AND month = ${month}` : sql``;
+      const monthCondition = (targetMonths && targetMonths.length > 0)
+        ? sql`AND month IN (${sql.join(targetMonths, sql`, `)})`
+        : sql``;
 
       const result = await db.execute(sql`
         SELECT 
@@ -222,16 +243,27 @@ export const ForecastAccuracyService = {
 
   getForecastAccuracyData: async (filters: AccuracyFilters): Promise<RawDataRow[]> => {
     try {
-      const monthClause = filters.month ? sql`AND month = ${filters.month}` : sql``;
-      // const weekClause = filters.week ? sql`AND week = ${filters.week}` : sql``;
-      const plantClause = filters.plant ? sql`AND plant = ${filters.plant}` : sql``;
+
+      const yearClause = sql`AND year = ${filters.year}`;
+
+      const monthClause = filters.months && filters.months.length > 0 
+        ? sql`AND month IN (${sql.join(filters.months, sql`, `)})` 
+        : sql``;
+        
+      const plantClause = filters.plants && filters.plants.length > 0 
+        ? sql`AND plant IN (${sql.join(filters.plants, sql`, `)})` 
+        : sql``;
+
+      const weekClause = filters.week ? sql`AND week = ${filters.week}` : sql``;
 
       const result = await db.execute(sql`
         SELECT year, month, plant, business_unit, code, forecast, sales
         FROM data_collection_forecast_accuracy
-        WHERE year = ${filters.year}
+        WHERE 1=1
+        ${yearClause}
         ${monthClause}
         ${plantClause}
+        ${weekClause}
       `);
 
       return result as unknown as RawDataRow[];
@@ -318,6 +350,93 @@ export const ForecastAccuracyService = {
     } catch (error) {
       console.error("Error in getMonthlyTrendData:", error);
       return [];
+    }
+  },
+
+  getWeeklyTrendData: async (filters: AccuracyFilters): Promise<WeeklyTrendData[]> => {
+    try {
+      let targetMonth: number;
+
+      const targetPlant = filters.plants && filters.plants.length > 0 
+      ? filters.plants[filters.plants.length - 1] 
+      : null;
+
+      const targetWeek = filters.week ? Number(filters.week) : null;
+
+      const plantClause = targetPlant ? sql` AND plant = ${targetPlant}` : sql``
+
+      const weekClause = targetWeek? sql` AND week = ${targetWeek}` : sql``
+
+      if (filters.months && filters.months.length > 0) {
+        targetMonth = Math.max(...filters.months);
+      } else {
+        const maxMonthResult = await db.execute(sql`
+          SELECT MAX(month) as max_month 
+          FROM data_collection_forecast_accuracy 
+          WHERE year = ${filters.year}
+        `);
+        targetMonth = (maxMonthResult as any)[0]?.max_month || (new Date().getMonth() + 1);
+      }
+
+      const result = await db.execute(sql`
+        SELECT year, month, week, code, forecast, sales
+        FROM data_collection_forecast_accuracy
+        WHERE year = ${filters.year} AND month = ${targetMonth}
+        ${plantClause}
+        ${weekClause}
+      `);
+
+      const rawData = result as unknown as RawDataRow[];
+      const weeksInMonth = [1, 2, 3, 4];
+
+      return weeksInMonth.map((weekNum) => {
+
+        const weekData = rawData.filter(d => Number(d.week) === weekNum);
+
+        if (weekData.length === 0){
+          return { week: `W${weekNum}`, overallAccuracy: 0 };
+        }
+
+        const summaryMap = new Map<string, { sum_f: number; sum_s: number }>();
+
+        for (const row of weekData) {
+          const key = row.code;
+          const current = summaryMap.get(key) || { sum_f: 0, sum_s: 0 };
+          current.sum_f += Number(row.forecast) || 0;
+          current.sum_s += Number(row.sales) || 0;
+          summaryMap.set(key, current);
+        }
+
+        const validErrors: number[] = [];
+        for (const summary of summaryMap.values()) {
+          const { sum_f, sum_s } = summary;
+          let validErrorValue = 0.0;
+        
+          if (sum_f <= 0 || sum_s <= 0) {
+            validErrorValue = 0.0;
+          } else {
+            const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
+            // Jika error > 100%, maka dianggap 0.0
+            validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+          }
+        
+          if (validErrorValue > 0) {
+            validErrors.push(validErrorValue);
+          }
+        }
+
+        const accuracy = validErrors.length > 0 
+          ? (1.0 - (validErrors.reduce((a, b) => a + b, 0) / validErrors.length)) * 100
+          : 0;
+
+        return {
+          week: `W${weekNum}`,
+          overallAccuracy: Number(accuracy.toFixed(2))
+        };
+      });
+    } catch (error) {
+      console.error("Error in getWeeklyTrendData:", error);
+      return []
     }
   },
 

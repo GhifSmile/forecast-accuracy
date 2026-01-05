@@ -1,20 +1,32 @@
 import { ForecastAccuracyService } from "@/services/forecastAccuracy";
 import Navigation from "@/components/dashboard/Navigation";
 import UploadButton from "@/components/dashboard/UploadButton";
+import FilterGroup from "@/components/dashboard/filterGroup";
 
 export default async function TrendAnalysis({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string }>;
+  searchParams: Promise<any>;
 }) {
-  // 1. Ambil filter dari URL (Server Side)
+  
   const params = await searchParams;
-  const currentYear = new Date().getFullYear();
-  const selectedYear = params.year ? parseInt(params.year) : currentYear;
-  const selectedMonth = params.month ? parseInt(params.month) : undefined;
+  const options = await ForecastAccuracyService.getFilterOptions();
+
+  const selectedYear = params.year 
+    ? Number(params.year.split(",")[0]) 
+    : options.year[0];
+
+  const selectedMonths = params.month 
+    ? String(params.month).split(",").map(Number).filter((n) => !isNaN(n)) 
+    : [];    
+
+  const filters = {
+    year: selectedYear,
+    months: selectedMonths,
+  };  
 
   // 2. Tarik data dari Service menggunakan Raw Query ke View
-  const trendData = await ForecastAccuracyService.getTrendAnalysis(selectedYear, selectedMonth);
+  const trendData = await ForecastAccuracyService.getTrendAnalysis(filters);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -54,14 +66,7 @@ export default async function TrendAnalysis({
 
             {/* Filter Group */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-               <div className="w-32 bg-white text-slate-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-md flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
-                 <span>Year: {selectedYear}</span>
-                 <span className="text-[10px] opacity-40">▼</span>
-               </div>
-               <div className="w-32 bg-white text-slate-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-md flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
-                 <span>Month: {selectedMonth}</span>
-                 <span className="text-[10px] opacity-40">▼</span>
-               </div>
+               <FilterGroup options={options} showPlant={false} />
             </div>
              
             {/* Tombol Tambah Data */}

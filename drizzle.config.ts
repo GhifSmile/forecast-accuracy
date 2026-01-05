@@ -8,6 +8,5 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },
-  // HANYA baca schema public (tempat tabel Anda berada)
   schemaFilter: ["public"], 
 });

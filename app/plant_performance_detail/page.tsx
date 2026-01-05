@@ -1,17 +1,26 @@
 import Navigation from "@/components/dashboard/Navigation";
-import { ForecastAccuracyService } from "@/services/forecastAccuracy";
+import FilterGroup from "@/components/dashboard/filterGroup";
 import UploadButton from "@/components/dashboard/UploadButton";
+
+import { ForecastAccuracyService } from "@/services/forecastAccuracy";
 
 export default async function PerformanceDetailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<any>;
 }) {
   const params = await searchParams;
-  const currentYear = new Date().getFullYear();
-  const selectedYear = params.year ? parseInt(params.year) : currentYear;
+  const options = await ForecastAccuracyService.getFilterOptions();
 
-  const performanceData = await ForecastAccuracyService.getMonthlyPerformance(selectedYear);
+  const selectedYear = params.year 
+    ? Number(params.year.split(",")[0]) 
+    : options.year[0];
+
+  const filters = {
+    year: selectedYear,
+  };
+
+  const performanceData = await ForecastAccuracyService.getMonthlyPerformance(filters);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -41,13 +50,7 @@ export default async function PerformanceDetailPage({
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-               <div className="w-32 bg-white text-slate-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-md flex items-center justify-between cursor-default">
-                 <span>Year: {selectedYear}</span>
-               </div>
-               <div className="w-32 bg-white text-slate-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-md flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all">
-                 <span>Month</span>
-                 <span className="text-[10px] opacity-40">▼</span>
-               </div>
+                <FilterGroup options={options} showMonth={false} showPlant={false}/>
             </div>
             <div className="flex justify-center lg:justify-end order-1 lg:order-2">
               <UploadButton />

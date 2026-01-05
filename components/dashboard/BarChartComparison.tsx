@@ -1,31 +1,50 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MoveLeft } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { PlantComparisonData } from "@/services/forecastAccuracy";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useCallback } from "react";
 
 interface Props {
   data: PlantComparisonData[];
 }
 
-
 export default function ComparisonBarChart({ data }: Props) {
-  const tooltipOrder = ["Overall Accuracy", "Fish Accuracy", "Shrimp Accuracy"];
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
+  // --- LOGIKA INTERAKTIF PERBAIKAN ---
+  const handleBarClick = useCallback((item: any) => {
+    // Di Recharts, saat onClick di taruh di <Bar />, datanya ada di item.payload
+    if (item && item.plant) {
+      const clickedPlant = item.plant;
+      const params = new URLSearchParams(searchParams.toString());
+      
+      if (params.get("plant") === clickedPlant) {
+        params.delete("plant");
+      } else {
+        params.set("plant", clickedPlant);
+      }
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [router, searchParams, pathname]);
+
+  const tooltipOrder = ["Overall Accuracy", "Fish Accuracy", "Shrimp Accuracy"];
   const sortedData = [...data].sort((a, b) => a.overallAccuracy - b.overallAccuracy);
+  const legendOrder = ["Overall Accuracy", "Fish Accuracy", "Shrimp Accuracy"]
 
   return (
-    <Card className="shadow-sm rounded-xl overflow-visible">
+    <Card className="shadow-sm rounded-xl overflow-visible border-none h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="text-lg font-bold text-slate-800">Comparison Chart</CardTitle>
+        <CardTitle className="text-lg font-bold text-black">Plant Comparison Accuracy</CardTitle>
       </CardHeader>
-      {/* Tingkatkan h-[300px] menjadi h-[350px] untuk memberi ruang legend di mobile */}
-      <CardContent className="h-[350px] w-full">
+      <CardContent className="flex-1 w-full min-h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sortedData}
-            // Tambahkan margin bottom yang signifikan (minimal 20-30)
             margin={{ top: 20, right: 30, left: -10, bottom: 25 }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
@@ -34,7 +53,7 @@ export default function ComparisonBarChart({ data }: Props) {
               tickLine={false} 
               axisLine={false} 
               fontSize={10}
-              dy={5} // Memberi jarak antara tick dan bar
+              dy={5}
             />
             <YAxis 
               tickFormatter={(value) => `${value}%`} 
@@ -44,57 +63,56 @@ export default function ComparisonBarChart({ data }: Props) {
               fontSize={10}
             />
 
-<Tooltip 
+            <Tooltip 
               cursor={{fill: '#f8fafc'}}
-              itemSorter={(item) => {
-                return tooltipOrder.indexOf(item.name as string);
-              }}
-              // PERBAIKAN: Menggunakan labelName: any untuk menghindari error TS deprecated & incompatible type
+              itemSorter={(item) => tooltipOrder.indexOf(item.name as string)}
               formatter={(value: number | string | undefined, labelName: any) => {
                 if (typeof value === 'undefined') return ["0.00%", labelName];
-                
                 const formattedValue = Number(value).toFixed(2);
-                
-                // Mengembalikan nama label secara dinamis agar menyesuaikan (Overall Accuracy, dll)
                 return [`${formattedValue}%`, labelName];
               }}
             />           
             
-            {/* PERBAIKAN LEGEND */}
             <Legend 
               verticalAlign="bottom" 
-              align="center" // Mengembalikan posisi ke tengah
-              iconType="circle"
-              iconSize={8}          
+              align="center"
+              itemSorter={(item) => legendOrder.indexOf(item.value as string)}
+              iconType="rect"
+              iconSize={10}          
               formatter={(value) => <span className="text-slate-700">{value}</span>}
               wrapperStyle={{ 
-                fontSize: '10px', 
-                paddingTop: '20px', // Memberi jarak agar tidak tabrakan dengan nama Plant (SBY, LPG, dll)
+                fontSize: '12px', 
+                paddingTop: '20px',
                 position: 'relative',
-                width: '100%' // Memastikan container legend mengambil lebar penuh agar alignment center akurat
+                width: '100%'
               }} 
             />       
-
-            {/* <ReferenceLine 
-              y={75} 
-              stroke="#f04487" 
-              strokeDasharray="5 5" 
-              strokeWidth={1.5}
-              // Styling label agar berada di pojok kiri atas garis
-              label={{ 
-                value: 'Target 75%', 
-                position: 'insideTopLeft', // Menempatkan label di sisi kiri atas garis
-                fill: '#f04487', 
-                fontSize: 10,
-                fontWeight: 'light',
-                dx: -5,  // Geser 10px ke kanan agar tidak menempel sumbu Y
-                dy: -20  // Geser 10px ke atas agar tidak menempel garis dashed
-              }} 
-            /> */}
             
-            <Bar name="Overall Accuracy" dataKey="overallAccuracy" fill="#00acc1" radius={[2, 2, 0, 0]} />
-            <Bar name="Fish Accuracy" dataKey="fishAccuracy" fill="#ff8c00" radius={[2, 2, 0, 0]} />
-            <Bar name="Shrimp Accuracy" dataKey="shrimpAccuracy" fill="#ab47bc" radius={[2, 2, 0, 0]} />
+            {/* PINDAHKAN onClick KE DALAM SETIAP BAR DAN TAMBAHKAN CURSOR POINTER */}
+            <Bar 
+              name="Overall Accuracy" 
+              dataKey="overallAccuracy" 
+              fill="#4174ff" 
+              radius={[2, 2, 0, 0]} 
+              onClick={handleBarClick}
+              className="cursor-pointer"
+            />
+            <Bar 
+              name="Fish Accuracy" 
+              dataKey="fishAccuracy" 
+              fill="#ff8c00" 
+              radius={[2, 2, 0, 0]} 
+              onClick={handleBarClick}
+              className="cursor-pointer"
+            />
+            <Bar 
+              name="Shrimp Accuracy" 
+              dataKey="shrimpAccuracy" 
+              fill="#ab47bc" 
+              radius={[2, 2, 0, 0]} 
+              onClick={handleBarClick}
+              className="cursor-pointer"
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

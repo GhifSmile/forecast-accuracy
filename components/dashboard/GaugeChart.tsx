@@ -43,7 +43,7 @@ export default function GaugeChart({ value, title, type }: Props) {
     <Card className="bg-white border-none shadow-sm">
         
       <CardHeader className="pb-0 pt-2 px-4 flex flex-col items-center justify-center">
-        <CardTitle className="text-[12px] font-bold text-black uppercase tracking-widest text-center">
+        <CardTitle className="text-[12px] font-bold text-black tracking-widest text-center">
           {title}
         </CardTitle>
       </CardHeader>

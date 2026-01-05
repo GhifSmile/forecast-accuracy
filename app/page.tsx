@@ -1,10 +1,13 @@
 import { FileUp } from "lucide-react";
 import Navigation from "@/components/dashboard/Navigation";
+import FilterGroup from "@/components/dashboard/filterGroup";
 
 import GaugeChart from "@/components/dashboard/GaugeChart";
-import TrendAccuracyChart from "@/components/dashboard/LineChartForecast";
+import TrendAccuracyChartMonthly from "@/components/dashboard/LineChartForecastMonthly";
+import TrendAccuracyChartWeekly from "@/components/dashboard/LineChartForecastWeekly";
 import ComparisonBarChart from "@/components/dashboard/BarChartComparison";
 import PlantAchievementCard from "@/components/dashboard/PlantAchievementCard";
+import AccuracyGrowthCard from "@/components/dashboard/AccuracyGrowthCard";
 
 import UploadButton from "@/components/dashboard/UploadButton";
 
@@ -14,26 +17,79 @@ import { ForecastAccuracyService } from "@/services/forecastAccuracy";
 export default async function ExecutiveSummary({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string; plant?: string }>;
+  searchParams: Promise<any>;
 }) {
   // 1. Ambil filter dari URL
   const params = await searchParams;
-  const currentYear = new Date().getFullYear();
-  
+  const options = await ForecastAccuracyService.getFilterOptions();
+
+  const selectedYear = params.year 
+    ? Number(params.year)
+    : options.year[0];
+
+  // Ambil Plants (Multi Select): Konversi string "A,B" jadi ["A", "B"]
+  const selectedPlants = params.plant 
+    ? String(params.plant).split(",").filter((v) => v !== "") 
+    : [];
+
+  // Ambil Months (Multi Select): Konversi string "1,2" jadi [1, 2]
+  const selectedMonths = params.month 
+    ? String(params.month).split(",").map(Number).filter((n) => !isNaN(n)) 
+    : [];    
+
+  const selectedWeek = params.week ? Number(params.week) : undefined;
+
   const filters = {
-    year: params.year ? parseInt(params.year) : currentYear,
-    month: params.month ? parseInt(params.month) : undefined,
-    plant: params.plant || undefined,
+    year: selectedYear, 
+    months: selectedMonths,
+    plants: selectedPlants,
   };
+
+  let currentMonthForMoM: number;
+  let prevMonthForMoM: number;
+  let prevYearForMoM: number = selectedYear;
+
+  if (filters.months && filters.months.length > 0) {
+    // Ambil bulan terbesar yang dipilih user
+    currentMonthForMoM = Math.max(...filters.months);
+  } else {
+    // Jika user tidak pilih bulan (All), gunakan bulan sekarang
+    currentMonthForMoM = new Date().getMonth() + 1;
+  }
+
+  // Hitung mundur 1 bulan
+  if (currentMonthForMoM === 1) {
+    prevMonthForMoM = 12;
+    prevYearForMoM = selectedYear - 1;
+  } else {
+    prevMonthForMoM = currentMonthForMoM - 1;
+    prevYearForMoM = selectedYear;
+  }
 
   // 2. Ambil data akurasi menggunakan Method baru (Raw Query)
   // Data sudah otomatis dikali 100 oleh service
-  const [overallAcc, fishAcc, shrimpAcc, monthlyTrend, plantComparison] = await Promise.all([
+  const [overallAcc, fishAcc, shrimpAcc, monthlyTrend, weeklyTrend, plantComparison, overallAccMoMCurrent, overallAccMoMPrev] = await Promise.all([
     ForecastAccuracyService.getOverallAccuracy(filters),
     ForecastAccuracyService.getFishAccuracy(filters),
     ForecastAccuracyService.getShrimpAccuracy(filters),
-    ForecastAccuracyService.getMonthlyTrendData(filters), // Mengambil tren 12 bulan
-    ForecastAccuracyService.getPlantComparison(filters), // Mengambil perbandingan plant
+    ForecastAccuracyService.getMonthlyTrendData(filters),
+    ForecastAccuracyService.getWeeklyTrendData({
+        ...filters,
+        week: selectedWeek
+    }),
+    ForecastAccuracyService.getPlantComparison({
+        ...filters,
+        week: selectedWeek
+    }),
+    ForecastAccuracyService.getOverallAccuracy({ 
+        ...filters, 
+        months: [currentMonthForMoM]
+    }),
+    ForecastAccuracyService.getOverallAccuracy({
+        ...filters,
+        months: [prevMonthForMoM],
+        year: prevYearForMoM
+    })
   ]);
 
   return (
@@ -73,17 +129,7 @@ export default async function ExecutiveSummary({
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-               {/* Label dinamis berdasarkan filter */}
-               {[
-                 { label: "Plant:", value: filters.plant || "All" },
-                 { label: "Year:", value: filters.year },
-                 { label: "Month:", value: filters.month || "All" }
-               ].map((item) => (
-                 <div key={item.label} className="w-32 bg-white text-slate-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-md flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all">
-                   <span>{item.label} {item.value}</span>
-                   <span className="text-[10px] opacity-40">▼</span>
-                 </div>
-               ))}
+               <FilterGroup options={options} />
             </div>
              
             <div className="flex justify-center lg:justify-end order-1 lg:order-2">
@@ -98,15 +144,6 @@ export default async function ExecutiveSummary({
       {/* CONTENT SECTION (Executive Summary) */}
       <div className="max-w-7xl mx-auto px-8 py-10">
 
-        <div className="max-w-7xl mx-auto px-6 mb-6">
-          <div className="flex justify-center">
-            {/* Menggunakan max-w-xs agar card tidak melebar dan tetap di tengah */}
-            <div className="w-full max-w-xs">
-              <PlantAchievementCard data={plantComparison} target={75} />
-            </div>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Menggunakan nilai asli dari Service yang sudah dikali 100 */}
           <GaugeChart title="Overall Accuracy" value={overallAcc} type="overall"/>
@@ -114,11 +151,47 @@ export default async function ExecutiveSummary({
           <GaugeChart title="Shrimp Segment" value={shrimpAcc} type="shrimp"/>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Anda bisa meneruskan filter ke chart jika diperlukan nantinya */}
-          <TrendAccuracyChart data={monthlyTrend}/>
-          <ComparisonBarChart data={plantComparison}/>
+        {/* BARIS 2: TREND CHART (Kiri) & 2 SUMMARY CARDS VERTICAL (Kanan) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
+
+          {/* Trend Chart mengambil 2/3 lebar (lg:col-span-2) */}
+          <div className="lg:col-span-2">
+            <TrendAccuracyChartMonthly data={monthlyTrend}/>
+          </div>
+
+          {/* 2 Summary Cards di-stack secara vertikal dalam 1 kolom sisanya */}
+          {/* h-full dan flex-1 di sini penting agar tinggi card mengikuti tinggi chart di kiri */}
+          <div className="flex flex-col gap-4 h-full">
+            
+            <div className="flex-1">
+              {/* Nantinya ini diganti dengan komponen MoM Card */}
+              <AccuracyGrowthCard 
+                currentAccuracy={overallAccMoMCurrent} 
+                previousAccuracy={overallAccMoMPrev} 
+                currentMonth={currentMonthForMoM}
+              />
+            </div>
+
+            <div className="flex-1">
+              <PlantAchievementCard data={plantComparison} target={75} />
+            </div>
+
+          </div>
+
         </div>
+
+        {/* BARIS 3: COMPARISON BAR CHART (Full Width di bawah) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <div className="lg:col-span-1">
+            <TrendAccuracyChartWeekly 
+              data={weeklyTrend} 
+              currentMonth={currentMonthForMoM} 
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <ComparisonBarChart data={plantComparison}/>
+          </div>
+        </div>   
 
       </div>
 
