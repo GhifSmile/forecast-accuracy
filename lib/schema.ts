@@ -1,6 +1,5 @@
-import { pgTable, integer, varchar, numeric, pgView } from "drizzle-orm/pg-core"
+import { pgTable, integer, varchar, numeric, serial, boolean, timestamp, pgView } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
-
 
 
 export const dataCollectionForecastAccuracy = pgTable("data_collection_forecast_accuracy", {
@@ -14,7 +13,31 @@ export const dataCollectionForecastAccuracy = pgTable("data_collection_forecast_
     forecast: numeric(),
     produksi: numeric(),
     sales: numeric(),
+    createdAt: timestamp("created_at", {
+      mode: "date",
+    }),
 });
+
+export const users = pgTable("master_users", {
+  userId: serial("user_id").primaryKey(),
+
+  name: varchar("name", { length: 100 }).notNull(),
+
+  email: varchar("email", { length: 100 }).notNull(),
+
+  password: varchar("password", { length: 100 }).notNull(),
+
+  createdAt: timestamp("created_at", {
+    mode: "date",
+  })
+    .notNull()
+    .defaultNow(),
+
+  isActive: boolean("is_active").notNull(),
+  ds_1: boolean("ds_1").notNull(),
+  ds_2: boolean("ds_2").notNull(),
+});
+
 export const plantPerformanceDetailWeekly = pgView("plant_performance_detail_weekly", {	plant: varchar({ length: 50 }),
     businessUnit: varchar("business_unit", { length: 50 }),
     year: integer(),

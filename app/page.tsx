@@ -9,6 +9,7 @@ import ComparisonBarChart from "@/components/dashboard/BarChartComparison";
 import PlantAchievementCard from "@/components/dashboard/PlantAchievementCard";
 import AccuracyGrowthCard from "@/components/dashboard/AccuracyGrowthCard";
 
+import DownloadButton from "@/components/dashboard/downloadButton";
 import UploadButton from "@/components/dashboard/UploadButton";
 
 // Import Service yang sudah kita buat
@@ -45,6 +46,7 @@ export default async function ExecutiveSummary({
     plants: selectedPlants,
   };
 
+  
   let currentMonthForMoM: number;
   let prevMonthForMoM: number;
   let prevYearForMoM: number = selectedYear;
@@ -107,7 +109,7 @@ export default async function ExecutiveSummary({
                 <img 
                   src="/image_png_1.PNG"
                   alt="Logo" 
-                  className="h-full w-auto object-contain object-left opacity-20 scale-120" // Opacity 70% dan object-contain agar proporsi terjaga
+                  className="h-full w-auto object-contain object-left opacity-20 scale-120"
                 />
               </div>
 
@@ -132,7 +134,8 @@ export default async function ExecutiveSummary({
                <FilterGroup options={options} />
             </div>
              
-            <div className="flex justify-center lg:justify-end order-1 lg:order-2">
+            <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
+              <DownloadButton />
               <UploadButton />
             </div>
                 
