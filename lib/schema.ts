@@ -1,4 +1,4 @@
-import { pgTable, integer, varchar, numeric, serial, boolean, timestamp, pgView } from "drizzle-orm/pg-core"
+import { pgTable, integer, varchar, numeric, serial, boolean, text, timestamp, pgView } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -16,26 +16,26 @@ export const dataCollectionForecastAccuracy = pgTable("data_collection_forecast_
     createdAt: timestamp("created_at", {
       mode: "date",
     }),
+    upload_by: varchar({ length: 100 }),
+
 });
 
-export const users = pgTable("master_users", {
-  userId: serial("user_id").primaryKey(),
-
-  name: varchar("name", { length: 100 }).notNull(),
+export const user = pgTable("master_user", {
+  id: serial("id").primaryKey(),
 
   email: varchar("email", { length: 100 }).notNull(),
 
-  password: varchar("password", { length: 100 }).notNull(),
+  password: text("password").notNull(),
 
-  createdAt: timestamp("created_at", {
-    mode: "date",
-  })
-    .notNull()
+  role: varchar("role", { length: 50 }).notNull(),
+
+  is_active: boolean("is_active").notNull().default(true),
+
+  created_at: timestamp("created_at", { mode: "date" })
     .defaultNow(),
 
-  isActive: boolean("is_active").notNull(),
-  ds_1: boolean("ds_1").notNull(),
-  ds_2: boolean("ds_2").notNull(),
+  updated_at: timestamp("updated_at", { mode: "date" })
+    .defaultNow(),
 });
 
 export const plantPerformanceDetailWeekly = pgView("plant_performance_detail_weekly", {	plant: varchar({ length: 50 }),

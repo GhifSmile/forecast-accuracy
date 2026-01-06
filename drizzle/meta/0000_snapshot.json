@@ -1,5 +1,5 @@
 {
-  "id": "89619610-f6b8-49e6-9f5c-e420a8d9e988",
+  "id": "4d6cc201-8a12-4044-bd58-5d359a9540cd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -73,6 +73,12 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "upload_by": {
+          "name": "upload_by",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -83,20 +89,14 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.master_users": {
-      "name": "master_users",
+    "public.master_user": {
+      "name": "master_user",
       "schema": "",
       "columns": {
-        "user_id": {
-          "name": "user_id",
+        "id": {
+          "name": "id",
           "type": "serial",
           "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(100)",
-          "primaryKey": false,
           "notNull": true
         },
         "email": {
@@ -107,7 +107,7 @@
         },
         "password": {
           "name": "password",
-          "type": "varchar(100)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },

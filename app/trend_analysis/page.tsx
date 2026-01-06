@@ -1,6 +1,7 @@
 import { ForecastAccuracyService } from "@/services/forecastAccuracy";
 import Navigation from "@/components/dashboard/Navigation";
 import UploadButton from "@/components/dashboard/UploadButton";
+import DownloadButton from "@/components/dashboard/downloadButton";
 import FilterGroup from "@/components/dashboard/filterGroup";
 
 export default async function TrendAnalysis({
@@ -70,7 +71,8 @@ export default async function TrendAnalysis({
             </div>
              
             {/* Tombol Tambah Data */}
-            <div className="flex justify-center lg:justify-end order-1 lg:order-2">
+            <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
+              <DownloadButton />
               <UploadButton />
             </div>
                 

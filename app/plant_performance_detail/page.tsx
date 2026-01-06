@@ -1,6 +1,7 @@
 import Navigation from "@/components/dashboard/Navigation";
 import FilterGroup from "@/components/dashboard/filterGroup";
 import UploadButton from "@/components/dashboard/UploadButton";
+import DownloadButton from "@/components/dashboard/downloadButton";
 
 import { ForecastAccuracyService } from "@/services/forecastAccuracy";
 
@@ -52,7 +53,8 @@ export default async function PerformanceDetailPage({
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
                 <FilterGroup options={options} showMonth={false} showPlant={false}/>
             </div>
-            <div className="flex justify-center lg:justify-end order-1 lg:order-2">
+            <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
+              <DownloadButton />
               <UploadButton />
             </div>
           </div>

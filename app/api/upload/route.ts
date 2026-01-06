@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
       return val;
     };
 
+    const sanitizeStr = (val: any) => {
+      if (val === null || val === undefined) return "";
+      return String(val)
+        .trim()
+        .replace(/\s+/g, " ")
+    }
+
     // --- TAHAP 1: VALIDASI SEMUA BARIS ---
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber > 1 && isFileValid) {
@@ -33,10 +40,10 @@ export async function POST(req: NextRequest) {
           clean(row.getCell(1).value),  // year
           clean(row.getCell(2).value),  // month
           clean(row.getCell(3).value),  // week
-          clean(row.getCell(4).value),  // plant
-          clean(row.getCell(5).value),  // business_unit
-          clean(row.getCell(6).value),  // category
-          clean(row.getCell(7).value),  // code
+          row.getCell(4).value,  // plant
+          row.getCell(5).value,  // business_unit
+          row.getCell(6).value,  // category
+          row.getCell(7).value,  // code
           clean(row.getCell(8).value),  // forecast
           clean(row.getCell(9).value),  // produksi
           clean(row.getCell(10).value)  // sales
@@ -54,10 +61,10 @@ export async function POST(req: NextRequest) {
             ${Number(rawValues[0])}::int, 
             ${Number(rawValues[1])}::int, 
             ${Number(rawValues[2])}::int, 
-            ${String(rawValues[3])}::varchar, 
-            ${String(rawValues[4])}::varchar, 
-            ${String(rawValues[5])}::varchar, 
-            ${String(rawValues[6])}::varchar, 
+            ${sanitizeStr(rawValues[3]).toLocaleUpperCase()}::varchar, 
+            ${sanitizeStr(rawValues[4])}::varchar, 
+            ${sanitizeStr(rawValues[5])}::varchar, 
+            ${sanitizeStr(rawValues[6]).toLocaleUpperCase()}::varchar, 
             ${Number(rawValues[7])}::numeric, 
             ${Number(rawValues[8])}::numeric, 
             ${Number(rawValues[9])}::numeric,
@@ -83,6 +90,12 @@ export async function POST(req: NextRequest) {
       INSERT INTO data_collection_forecast_accuracy 
       (year, month, week, plant, business_unit, category, code, forecast, produksi, sales, created_at)
       VALUES ${sql.join(valueSets, sql`, `)}
+      ON CONFLICT (year, month, week, plant, business_unit, category, code)
+      DO UPDATE SET
+        forecast = EXCLUDED.forecast,
+        produksi = EXCLUDED.produksi,
+        sales = EXCLUDED.sales,
+        created_at = NOW()
     `);
 
     return NextResponse.json({ message: `Berhasil! Seluruh data (${valueSets.length} baris) telah diupload.` });

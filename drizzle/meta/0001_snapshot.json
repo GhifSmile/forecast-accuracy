@@ -1,6 +1,6 @@
 {
-  "id": "0ec76e99-0d01-42c0-ae30-2a312493b80e",
-  "prevId": "89619610-f6b8-49e6-9f5c-e420a8d9e988",
+  "id": "a3d84e9a-5707-49a4-ac01-59fb7479fa94",
+  "prevId": "4d6cc201-8a12-4044-bd58-5d359a9540cd",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -73,6 +73,12 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "upload_by": {
+          "name": "upload_by",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -83,20 +89,14 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.master_users": {
-      "name": "master_users",
+    "public.master_user": {
+      "name": "master_user",
       "schema": "",
       "columns": {
-        "user_id": {
-          "name": "user_id",
+        "id": {
+          "name": "id",
           "type": "serial",
           "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(100)",
-          "primaryKey": false,
           "notNull": true
         },
         "email": {
@@ -107,34 +107,36 @@
         },
         "password": {
           "name": "password",
-          "type": "varchar(100)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
+        "role": {
+          "name": "role",
+          "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": true
         },
-        "ds_1": {
-          "name": "ds_1",
-          "type": "boolean",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "now()"
         },
-        "ds_2": {
-          "name": "ds_2",
-          "type": "boolean",
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},

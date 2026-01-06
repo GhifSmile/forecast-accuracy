@@ -266,6 +266,8 @@ export const ForecastAccuracyService = {
         ${weekClause}
       `);
 
+      // console.log("anjay - adasdad    ".replace(/\s+/g, ' ').trim())
+
       return result as unknown as RawDataRow[];
       
     } catch (error) {

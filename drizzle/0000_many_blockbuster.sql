@@ -9,14 +9,14 @@ CREATE TABLE "data_collection_forecast_accuracy" (
 	"forecast" numeric,
 	"produksi" numeric,
 	"sales" numeric,
-	"created_at" timestamp
+	"created_at" timestamp,
+	"upload_by" varchar(100)
 );
 --> statement-breakpoint
-CREATE TABLE "master_users" (
-	"user_id" serial PRIMARY KEY NOT NULL,
-	"name" varchar(100) NOT NULL,
+CREATE TABLE "master_user" (
+	"id" serial PRIMARY KEY NOT NULL,
 	"email" varchar(100) NOT NULL,
-	"password" varchar(100) NOT NULL,
+	"password" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"is_active" boolean NOT NULL
 );
