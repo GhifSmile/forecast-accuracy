@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import { FileUp } from "lucide-react";
 import Navigation from "@/components/dashboard/Navigation";
 import GaugeChart from "@/components/dashboard/GaugeChart";
@@ -116,11 +115,3 @@ export default async function ExecutiveSummary({
     </main>
   );
 }
-=======
-// app/page.tsx
-import { redirect } from "next/navigation";
-
-export default function Home() {
-  redirect("/dashboard");
-}
->>>>>>> Stashed changes
