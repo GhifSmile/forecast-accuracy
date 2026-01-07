@@ -1,9 +1,12 @@
-<<<<<<< Updated upstream
+
 import { FileUp } from "lucide-react";
 import Navigation from "@/components/dashboard/Navigation";
+
 import GaugeChart from "@/components/dashboard/GaugeChart";
 import TrendAccuracyChart from "@/components/dashboard/LineChartForecast";
 import ComparisonBarChart from "@/components/dashboard/BarChartComparison";
+import PlantAchievementCard from "@/components/dashboard/PlantAchievementCard";
+
 import UploadButton from "@/components/dashboard/UploadButton";
 
 // Import Service yang sudah kita buat
@@ -95,6 +98,16 @@ export default async function ExecutiveSummary({
 
       {/* CONTENT SECTION (Executive Summary) */}
       <div className="max-w-7xl mx-auto px-8 py-10">
+
+        <div className="max-w-7xl mx-auto px-6 mb-6">
+          <div className="flex justify-center">
+            {/* Menggunakan max-w-xs agar card tidak melebar dan tetap di tengah */}
+            <div className="w-full max-w-xs">
+              <PlantAchievementCard data={plantComparison} target={75} />
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Menggunakan nilai asli dari Service yang sudah dikali 100 */}
           <GaugeChart title="Overall Accuracy" value={overallAcc} type="overall"/>
@@ -116,11 +129,3 @@ export default async function ExecutiveSummary({
     </main>
   );
 }
-=======
-// app/page.tsx
-import { redirect } from "next/navigation";
-
-export default function Home() {
-  redirect("/dashboard");
-}
->>>>>>> Stashed changes

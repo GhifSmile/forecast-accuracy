@@ -1,4 +1,4 @@
-import { pgTable, integer, varchar, numeric, pgView } from "drizzle-orm/pg-core"
+import { pgTable, integer, varchar, numeric, pgView, boolean, serial, timestamp, text } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -71,3 +71,13 @@ export const summaryAccuracy = pgView("summary_accuracy", {	year: integer(),
     businessUnit: varchar("business_unit", { length: 50 }),
     salesVsForecast: numeric("sales_vs_forecast"),
 }).as(sql`WITH code_summary AS ( SELECT t1.year, t1.month, t1.plant, t1.business_unit, t1.code, sum(t1.forecast) AS sum_f, sum(t1.sales) AS sum_s FROM data_collection_forecast_accuracy t1 GROUP BY t1.year, t1.month, t1.plant, t1.business_unit, t1.code ), raw_error AS ( SELECT t2.year, t2.month, t2.plant, t2.business_unit, t2.code, t2.sum_f, t2.sum_s, abs(t2.sum_f - t2.sum_s) / NULLIF(t2.sum_f, 0::numeric) AS raw_error_rate FROM code_summary t2 ), code_error AS ( SELECT t3.year, t3.month, t3.plant, t3.business_unit, t3.code, CASE WHEN t3.sum_f = 0::numeric OR t3.sum_s = 0::numeric THEN 0.0 WHEN t3.raw_error_rate > 1::numeric THEN 0.0 ELSE t3.raw_error_rate END AS valid_error_value FROM raw_error t3 ), bu_avg_error AS ( SELECT t4.year, t4.month, t4.plant, t4.business_unit, COALESCE(sum(t4.valid_error_value) / NULLIF(count( CASE WHEN t4.valid_error_value > 0::numeric THEN 1 ELSE NULL::integer END), 0)::numeric, 0::numeric) AS average_error_rate FROM code_error t4 GROUP BY t4.year, t4.month, t4.plant, t4.business_unit ) SELECT year, month, plant, business_unit, round(1.0 - average_error_rate, 4) AS sales_vs_forecast FROM bu_avg_error t5 ORDER BY year, month, plant, business_unit`);
+
+export const masterUser = pgTable("master_user", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  password: text("password").notNull(),
+  role: varchar("role", { length: 50 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
