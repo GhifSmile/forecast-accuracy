@@ -7,12 +7,13 @@ import { PlantComparisonData } from "@/services/forecastAccuracy";
 
 interface Props {
   data: PlantComparisonData[];
-  target?: number;
+  year: number;
 }
 
-export default function PlantAchievementCard({ data, target = 75 }: Props) {
+export default function PlantAchievementCard({ data, year }: Props) {
+  const target = year<2026? 75: 80;
   const achievedCount = data.filter(p => p.overallAccuracy >= target).length;
-  const TOTAL_PLANTS = 7;
+  const TOTAL_PLANTS = 5;
   
   const chartData = [
     { name: "Achieved", value: achievedCount },

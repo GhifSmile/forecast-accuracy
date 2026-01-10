@@ -9,14 +9,17 @@ import { useCallback } from "react";
 interface Props {
   data: WeeklyTrendData[];
   currentMonth: number;
+  year: number;
 }
 
-export default function TrendAccuracyChartWeekly({ data, currentMonth }: Props) {
+export default function TrendAccuracyChartWeekly({ data, currentMonth, year }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const chartData = data.map(item => ({ ...item, Target: 75 }));
+  const target = year<2026?75: 80;
+
+  const chartData = data.map(item => ({ ...item, target: target }));
 
   const handleChartClick = useCallback((state: any) => {
     if (state && state.activeLabel) {
@@ -128,7 +131,7 @@ export default function TrendAccuracyChartWeekly({ data, currentMonth }: Props) 
 
             <Line 
               type="linear" 
-              dataKey="Target" 
+              dataKey="target" 
               stroke="#f04487" 
               strokeDasharray="5 5" 
               strokeWidth={1.5} 

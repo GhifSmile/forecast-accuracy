@@ -57,7 +57,7 @@ export async function GET() {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": "attachment; filename=Template_Forecast_Accuracy.xlsx",
+      "Content-Disposition": "attachment; filename=Forecast_Accuracy-[Plant]_[Year][Month][Week].xlsx",
     },
   });
 }

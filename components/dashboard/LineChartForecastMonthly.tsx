@@ -8,9 +8,10 @@ import { useCallback } from "react";
 
 interface Props {
   data: MonthlyTrendData[];
+  year: number;
 }
 
-export default function TrendAccuracyChartMonthly({ data }: Props) {
+export default function TrendAccuracyChartMonthly({ data, year }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -42,7 +43,7 @@ export default function TrendAccuracyChartMonthly({ data }: Props) {
 
   const chartData = data.map(item => ({
     ...item,
-    Target: 75 // Sesuai target overall yang Anda inginkan
+    Target: year<2026?75: 80 // Sesuai target overall yang Anda inginkan
   }));
 
   return (

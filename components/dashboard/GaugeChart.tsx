@@ -10,28 +10,29 @@ interface Props {
   value: number;
   title: string;
   type: 'overall' | 'fish' | 'shrimp';
+  year: number;
 }
 
-export default function GaugeChart({ value, title, type }: Props) {
+export default function GaugeChart({ value, title, type , year}: Props) {
 
   const getArcConfig = () => {
     switch (type) {
       case 'overall':
         return [
-          { limit: 60, color: '#f04487' }, // Merah (0 - 60)
-          { limit: 75, color: '#fbb92c' }, // Kuning (60 - 75)
-          { limit: 100, color: '#02d1a7' } // Hijau (75 - 100)
+          { limit: 60, color: '#f04487' },
+          { limit: year<2026?75 :80, color: '#fbb92c' },
+          { limit: 100, color: '#02d1a7' }
         ];
       case 'fish':
         return [
-          { limit: 60, color: '#f04487' }, // Merah (0 - 60)
-          { limit: 78, color: '#fbb92c' }, // Kuning (60 - 78)
-          { limit: 100, color: '#02d1a7' } // Hijau (78 - 100)
+          { limit: 60, color: '#f04487' },
+          { limit: year<2026?78: 80, color: '#fbb92c' }, 
+          { limit: 100, color: '#02d1a7' } 
         ];
       case 'shrimp':
         return [
           { limit: 60, color: '#f04487' }, // Merah (0 - 60)
-          { limit: 70, color: '#fbb92c' }, // Kuning (60 - 70)
+          { limit: year<2026?70: 80, color: '#fbb92c' }, // Kuning (60 - 70)
           { limit: 100, color: '#02d1a7' } // Hijau (70 - 100)
         ];
       default:
@@ -54,15 +55,15 @@ export default function GaugeChart({ value, title, type }: Props) {
           type="radial"
           style={{ 
               width: "100%", 
-              maxWidth: "260px", // Mencegah gauge terlalu raksasa di mobile
+              maxWidth: "260px", // Mencegah gauge terlalu besar di mobile
               margin: "0 auto",
             }}
           labels={{
             valueLabel: {
                 formatTextValue: (val: number) => `${val.toFixed(0)}%`,
                 style: {
-                    fill: "#000000",      // Warna tulisan hitam
-                    textShadow: "none",   // Menghilangkan shadow
+                    fill: "#000000",  
+                    textShadow: "none", 
                     fontWeight: "bold",
               }
             },
@@ -71,7 +72,7 @@ export default function GaugeChart({ value, title, type }: Props) {
               defaultTickValueConfig: {
                 formatTextValue: (value: number) => `${value.toFixed(0)}%`,
                 style: {
-                    fill: "#000000", // Warna hitam pekat
+                    fill: "#000000",
                     textShadow: "none",
                     fontSize: 7,
                 }
@@ -94,9 +95,9 @@ export default function GaugeChart({ value, title, type }: Props) {
             elastic: true,
             animationDelay: 0,
             type: "needle",
-            color: '#000000',     // Warna biru gelap charcoal
-            baseColor: '#000000', // Warna poros sama dengan jarum
-            width: 15,         // Sedikit lebih tebal agar terlihat tegas
+            color: '#000000',
+            baseColor: '#000000',
+            width: 15,
             length: 0.75,            
           }}
         />

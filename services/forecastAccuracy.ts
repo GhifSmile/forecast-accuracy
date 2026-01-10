@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 
-// --- INTERFACES FOR DATABASE ROWS (Snake Case) ---
 interface MonthlyPerformanceRow {
   plant: string | null;
   business_unit: string | null;
@@ -46,7 +45,7 @@ interface RawDataRow {
 }
 
 interface AccuracyFilters {
-  year: number;   // Array untuk multi-select
+  year: number;   
   months?: number[]; // Array untuk multi-select
   plants?: string[]; // Array untuk multi-select
   week?: number
@@ -65,15 +64,15 @@ export interface MonthlyPerformanceData {
 export interface TrendAnalysisData {
   year: number;
   month: string;
-  overallAccuracy: number; // Ubah ke number agar sesuai interface Anda
-  fishAccuracy: number;    // Ubah ke number agar sesuai interface Anda
-  shrimpAccuracy: number;  // Ubah ke number agar sesuai interface Anda
+  overallAccuracy: number; 
+  fishAccuracy: number;   
+  shrimpAccuracy: number;  
   bestPerforming: string;
   worstPerforming: string;
 }
 
 export interface MonthlyTrendData {
-  month: string;       // "Jan", "Feb", dst
+  month: string;
   overallAccuracy: number;
 }
 
@@ -87,6 +86,18 @@ export interface PlantComparisonData {
   overallAccuracy: number;
   fishAccuracy: number;
   shrimpAccuracy: number;
+}
+
+export interface PlantSubmissionStatus {
+  plant: string;
+  completedWeeks: number;
+  percentage: number;
+  details: { week: number; isFilled: boolean }[];
+}
+
+interface RawSubmissionRow {
+  plant: string;
+  week: number;
 }
 
 // Helper
@@ -149,6 +160,67 @@ function calculateAccuracyByUnit(data: RawDataRow[], businessUnitFilter: string 
 // --- SERVICE OBJECT ---
 export const ForecastAccuracyService = {
 
+  getSubmissionStatus: async (filters: AccuracyFilters): Promise<PlantSubmissionStatus[]> => {
+    try {
+      let targetMonth: number;
+      const defaultPlants = ["CKP", "LPG", "MDN", "SBY", "SPJ"];
+
+      const activePlants = filters.plants && filters.plants.length > 0 
+        ? filters.plants 
+        : defaultPlants;
+
+      if (filters.months && filters.months.length > 0) {
+        targetMonth = Math.max(...filters.months);
+      } else {
+        const maxMonthResult = await db.execute(sql`
+          SELECT MAX(month) as max_month
+          FROM data_collection_forecast_accuracy
+          WHERE year = ${filters.year}
+        `);
+        targetMonth = (maxMonthResult as any)[0]?.max_month || (new Date().getMonth() + 1);
+      }
+
+      const plantClause = filters.plants && filters.plants.length > 0 
+        ? sql`AND plant IN (${sql.join(filters.plants, sql`, `)})` 
+        : sql``;
+
+      const result = await db.execute(sql`
+        SELECT DISTINCT plant, week
+        FROM data_collection_forecast_accuracy
+        WHERE year = ${filters.year} 
+          AND month = ${targetMonth}
+          AND week BETWEEN 1 AND 4
+          ${plantClause}
+      `);
+
+      const rows = result as unknown as RawSubmissionRow[];
+
+      return activePlants.map(plantName => {
+        const filledWeeks = rows
+          .filter(r => r.plant?.toUpperCase() === plantName.toUpperCase())
+          .map(r => Number(r.week));
+
+        const details = [1, 2, 3, 4].map(w => ({
+          week: w,
+          isFilled: filledWeeks.includes(w)
+        }));
+
+        const completedCount = details.filter(d => d.isFilled).length;
+
+        return {
+          plant: plantName,
+          completedWeeks: completedCount,
+          percentage: (completedCount / 4) * 100,
+          details: details
+        };
+      });
+
+    } catch (error) {
+      console.error("Error in getSubmissionStatus:", error);
+      return [];
+    }
+  },
+
   getFilterOptions: async () => {
     const result = await db.execute(sql`
       SELECT DISTINCT year FROM data_collection_forecast_accuracy 
@@ -159,6 +231,22 @@ export const ForecastAccuracyService = {
       plants: ["CKP", "LPG", "MDN", "SBY", "SPJ"],
       months: monthNames.map((name, i) => ({ id: i + 1, name }))
     };
+  },
+
+  getLatestMonthAvailable: async (year: number): Promise<number | null> => {
+    try {
+      const result = await db.execute(sql`
+        SELECT MAX(month) as max_month 
+        FROM data_collection_forecast_accuracy 
+        WHERE year = ${year}
+      `);
+      
+      const maxMonth = (result as any)[0]?.max_month;
+      return maxMonth ? Number(maxMonth) : null;
+    } catch (error) {
+      console.error("Error fetching latest month:", error);
+      return null;
+    }
   },
 
   getMonthlyPerformance: async (filters: AccuracyFilters): Promise<MonthlyPerformanceData[]> => {
@@ -257,7 +345,7 @@ export const ForecastAccuracyService = {
       const weekClause = filters.week ? sql`AND week = ${filters.week}` : sql``;
 
       const result = await db.execute(sql`
-        SELECT year, month, plant, business_unit, code, forecast, sales
+        SELECT year, month, week, plant, business_unit, code, forecast, sales
         FROM data_collection_forecast_accuracy
         WHERE 1=1
         ${yearClause}
