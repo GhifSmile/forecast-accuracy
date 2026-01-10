@@ -22,14 +22,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Ambil tahun saat ini secara otomatis
+  const currentYear = new Date().getFullYear();
+
   return (
     <html lang="en">
       <body
-        // Tambahkan 'font-sans' di sini
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <div className="flex flex-col min-h-screen">
+          
+          <main className="flex-grow">
+            {children}
+          </main>
+
+          <footer className="w-full text-center text-xs text-slate-500 py-6 border-t border-slate-200 bg-white">
+            <div className="max-w-7xl mx-auto px-6">
+              {/* Tahun akan otomatis berubah jadi 2026, 2027, dst */}
+              © {currentYear} Digital Production | National Supply Chain
+            </div>
+          </footer>
+          
+        </div>
       </body>
     </html>
   );

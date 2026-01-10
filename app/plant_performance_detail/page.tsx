@@ -13,8 +13,8 @@ export default async function PerformanceDetailPage({
   const params = await searchParams;
   const options = await ForecastAccuracyService.getFilterOptions();
 
-  const selectedYear = params.year 
-    ? Number(params.year.split(",")[0]) 
+  const selectedYear = params.year
+    ? Number(params.year.split(",")[0])
     : options.year[0];
 
   const filters = {
@@ -30,10 +30,10 @@ export default async function PerformanceDetailPage({
           <div className="flex flex-col lg:flex-row justify-between items-center lg:items-start gap-4 text-center lg:text-left">
             <div className="flex flex-col items-center lg:items-start gap-0">
               <div className="relative h-24 md:h-32 w-auto overflow-hidden flex-shrink-0">
-                <img 
+                <img
                   src="/image_png_1.PNG"
-                  alt="Logo" 
-                  className="h-full w-auto object-contain object-left opacity-20 scale-120" // Opacity 70% dan object-contain agar proporsi terjaga
+                  alt="Logo"
+                  className="h-full w-auto object-contain object-left opacity-20 scale-120"
                 />
               </div>
               <div>
@@ -51,7 +51,7 @@ export default async function PerformanceDetailPage({
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-                <FilterGroup options={options} showMonth={false} showPlant={false}/>
+              <FilterGroup options={options} showMonth={false} showPlant={false} />
             </div>
             <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
               <DownloadButton />
@@ -61,28 +61,42 @@ export default async function PerformanceDetailPage({
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-10">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
           <div className="overflow-x-auto text-slate-700">
-            <table className="w-full text-left text-[11px] border-collapse">
+            {/* table-fixed digunakan agar lebar kolom yang kita set dipatuhi 100% */}
+            <table className="w-full text-left text-[11px] border-collapse table-fixed">
               <thead>
                 <tr className="bg-[#00C9A7] text-white uppercase tracking-wider font-bold">
-                  <th className="px-4 py-3 border-r border-white/10">Plant</th>
-                  <th className="px-4 py-3 border-r border-white/10">Segment</th>
-                  <th className="px-4 py-3 border-r border-white/10 text-center">Year</th>
-                  {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(m => (
-                    <th key={m} className="px-2 py-3 border-r border-white/10 text-center">{m}</th>
+                  {/* Lebar diset tetap (80 + 100 + 60 = 240px total sticky) */}
+                  <th className="w-[80px] px-4 py-3 sticky left-0 z-20 bg-[#00C9A7]">Plant</th>
+                  <th className="w-[100px] px-4 py-3 sticky left-[80px] z-20 bg-[#00C9A7]">Segment</th>
+                  <th className="w-[60px] px-4 py-3 text-center sticky left-[180px] z-20 bg-[#00C9A7]">Year</th>
+                  
+                  {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m) => (
+                    <th key={m} className="w-[65px] px-2 py-3 border-r border-white/10 text-center">{m}</th>
                   ))}
-                  <th className="px-4 py-3 border-r border-white/10 text-center">YTD Avg</th>
-                  <th className="px-4 py-3 border-r border-white/10 text-center">VS Target</th>
-                  <th className="px-4 py-3 border-r border-white/10 text-center">Status</th>
-                  <th className="px-4 py-3">Action Needed</th>
+                  
+                  <th className="w-[80px] px-4 py-3 border-r border-white/10 text-center">YTD Avg</th>
+                  <th className="w-[80px] px-4 py-3 border-r border-white/10 text-center">VS Target</th>
+                  <th className="w-[80px] px-4 py-3 border-r border-white/10 text-center">Status</th>
+                  <th className="w-[150px] px-4 py-3">Action Needed</th>
                 </tr>
               </thead>
+              
               <tbody className="divide-y divide-slate-100">
                 {performanceData.length > 0 ? (
                   performanceData.map((row, idx) => {
-                    const vsT = row.vsTarget;
+
+                    const businessUnit = row.businessUnit?.toLowerCase();
+                    const target = row.year >= 2026 
+                      ? 80 
+                      : (businessUnit === 'fish' ? 78 : 70);
+
+                    const ytd = row.ytdAvg;
+                    const vsT = ytd - target
+
+                    // const vsT = row.vsTarget;
                     const vsTargetPercent = vsT;
 
                     let statusEmoji = "🔴";
@@ -93,32 +107,48 @@ export default async function PerformanceDetailPage({
                       statusEmoji = "🟢";
                       actionText = "-";
                       colorClass = "text-green-600";
-                    } else if (vsT >= -20 && vsT < 0) { // Skala berubah karena sudah dikali 100
+                    } else if (vsT >= -20 && vsT < 0) {
                       statusEmoji = "🟡";
                       actionText = "Review Forecast Model";
                       colorClass = "text-yellow-600";
                     }
 
                     return (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors odd:bg-white even:bg-slate-50/30">
-                        <td className="px-4 py-3 font-bold text-slate-800">{row.plant}</td>
-                        <td className="px-4 py-3 uppercase">{row.businessUnit}</td>
-                        <td className="px-4 py-3 text-center">{row.year}</td>
+                      <tr key={idx} className="hover:bg-slate-50 transition-colors odd:bg-white even:bg-slate-50 group">
+                        {/* Sel harus punya bg-white/bg-slate-50 secara eksplisit tanpa celah */}
+                        <td className="px-4 py-3 font-bold text-slate-800 sticky left-0 z-10 
+                          bg-white group-even:bg-slate-50 group-hover:bg-slate-100 truncate">
+                          {row.plant}
+                        </td>
+                        
+                        <td className="px-4 py-3 uppercase sticky left-[80px] z-10 
+                          bg-white group-even:bg-slate-50 group-hover:bg-slate-100 truncate">
+                          {row.businessUnit}
+                        </td>
+                        
+                        {/* Kolom terakhir sticky diberikan border kanan tipis sebagai batas rapat */}
+                        <td className="px-4 py-3 text-center sticky left-[180px] z-10 
+                          bg-white group-even:bg-slate-50 group-hover:bg-slate-100 border-r border-slate-200/50">
+                          {row.year}
+                        </td>
+
                         {row.monthlyData.map((m, i) => (
-                          <td key={i} className={`px-2 py-3 text-center ${m.value === 0 ? 'text-slate-300' : 'text-slate-700 font-medium'}`}>
+                          <td key={i} className={`px-2 py-3 text-center border-r border-slate-100 ${m.value === 0 ? 'text-slate-300' : 'text-slate-700 font-medium'}`}>
                             {m.value > 0 ? `${(m.value).toFixed(2)}%` : "-"}
                           </td>
                         ))}
-                        <td className="px-4 py-3 text-center font-bold">
+
+                        <td className="px-4 py-3 text-center font-bold border-r border-slate-100 whitespace-nowrap">
                           {(row.ytdAvg).toFixed(2)}%
                         </td>
-                        <td className={`px-4 py-3 text-center font-bold ${colorClass}`}>
-                          {vsTargetPercent > 0 ? '+' : ''}{(vsTargetPercent).toFixed(2)}%
+                        <td className={`px-4 py-3 text-center font-bold border-r border-slate-100 whitespace-nowrap ${colorClass}`}>
+                          {/* {vsTargetPercent > 0 ? '+' : ''}{(vsTargetPercent).toFixed(2)}% */}
+                          {vsT > 0 ? '+' : ''}{vsT.toFixed(2)}%
                         </td>
-                        <td className="px-4 py-3 text-center text-lg leading-none">
+                        <td className="px-4 py-3 text-center text-lg leading-none border-r border-slate-100">
                           {statusEmoji}
                         </td>
-                        <td className={`px-4 py-3 italic ${vsT >= 0 ? 'text-slate-300' : 'font-medium ' + colorClass}`}>
+                        <td className={`px-4 py-3 italic whitespace-nowrap ${vsT >= 0 ? 'text-slate-300' : 'font-medium ' + colorClass}`}>
                           {actionText}
                         </td>
                       </tr>
@@ -126,8 +156,8 @@ export default async function PerformanceDetailPage({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={18} className="py-20 text-center text-slate-400 italic bg-white">
-                      No data found for the year the selected period.
+                    <td colSpan={20} className="py-20 text-center text-slate-400 italic bg-white">
+                      No data found for the selected period.
                     </td>
                   </tr>
                 )}
@@ -136,9 +166,7 @@ export default async function PerformanceDetailPage({
           </div>
         </div>
       </div>
-      <footer className="text-center text-xs text-slate-500 py-6 mt-10 border-t border-slate-200">
-        © 2025 Digital Production | National Supply Chain
-      </footer>
+
     </main>
   );
 }

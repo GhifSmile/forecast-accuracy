@@ -8,6 +8,7 @@ import TrendAccuracyChartWeekly from "@/components/dashboard/LineChartForecastWe
 import ComparisonBarChart from "@/components/dashboard/BarChartComparison";
 import PlantAchievementCard from "@/components/dashboard/PlantAchievementCard";
 import AccuracyGrowthCard from "@/components/dashboard/AccuracyGrowthCard";
+import DataSubmissionTracker from "@/components/dashboard/dataSubmissionTracker";
 
 import DownloadButton from "@/components/dashboard/downloadButton";
 import UploadButton from "@/components/dashboard/UploadButton";
@@ -45,7 +46,6 @@ export default async function ExecutiveSummary({
     months: selectedMonths,
     plants: selectedPlants,
   };
-
   
   let currentMonthForMoM: number;
   let prevMonthForMoM: number;
@@ -56,7 +56,9 @@ export default async function ExecutiveSummary({
     currentMonthForMoM = Math.max(...filters.months);
   } else {
     // Jika user tidak pilih bulan (All), gunakan bulan sekarang
-    currentMonthForMoM = new Date().getMonth() + 1;
+    const latestMonth = await ForecastAccuracyService.getLatestMonthAvailable(selectedYear);
+
+    currentMonthForMoM = latestMonth || (new Date().getMonth() + 1);
   }
 
   // Hitung mundur 1 bulan
@@ -70,7 +72,7 @@ export default async function ExecutiveSummary({
 
   // 2. Ambil data akurasi menggunakan Method baru (Raw Query)
   // Data sudah otomatis dikali 100 oleh service
-  const [overallAcc, fishAcc, shrimpAcc, monthlyTrend, weeklyTrend, plantComparison, overallAccMoMCurrent, overallAccMoMPrev] = await Promise.all([
+  const [overallAcc, fishAcc, shrimpAcc, monthlyTrend, weeklyTrend, plantComparison, overallAccMoMCurrent, overallAccMoMPrev, submissionStatus] = await Promise.all([
     ForecastAccuracyService.getOverallAccuracy(filters),
     ForecastAccuracyService.getFishAccuracy(filters),
     ForecastAccuracyService.getShrimpAccuracy(filters),
@@ -91,7 +93,8 @@ export default async function ExecutiveSummary({
         ...filters,
         months: [prevMonthForMoM],
         year: prevYearForMoM
-    })
+    }),
+    ForecastAccuracyService.getSubmissionStatus(filters),
   ]);
 
   return (
@@ -147,11 +150,15 @@ export default async function ExecutiveSummary({
       {/* CONTENT SECTION (Executive Summary) */}
       <div className="max-w-7xl mx-auto px-8 py-10">
 
+        <div className="mb-6">
+          <DataSubmissionTracker data={submissionStatus} currentMonth={currentMonthForMoM}  />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Menggunakan nilai asli dari Service yang sudah dikali 100 */}
-          <GaugeChart title="Overall Accuracy" value={overallAcc} type="overall"/>
-          <GaugeChart title="Fish Segment" value={fishAcc} type="fish"/>
-          <GaugeChart title="Shrimp Segment" value={shrimpAcc} type="shrimp"/>
+          <GaugeChart title="Overall Accuracy" value={overallAcc} type="overall" year={selectedYear}/>
+          <GaugeChart title="Fish Segment" value={fishAcc} type="fish" year={selectedYear}/>
+          <GaugeChart title="Shrimp Segment" value={shrimpAcc} type="shrimp" year={selectedYear}/>
         </div>
 
         {/* BARIS 2: TREND CHART (Kiri) & 2 SUMMARY CARDS VERTICAL (Kanan) */}
@@ -159,14 +166,14 @@ export default async function ExecutiveSummary({
 
           {/* Trend Chart mengambil 2/3 lebar (lg:col-span-2) */}
           <div className="lg:col-span-2">
-            <TrendAccuracyChartMonthly data={monthlyTrend}/>
+            <TrendAccuracyChartMonthly data={monthlyTrend} year={selectedYear}/>
           </div>
 
           {/* 2 Summary Cards di-stack secara vertikal dalam 1 kolom sisanya */}
           {/* h-full dan flex-1 di sini penting agar tinggi card mengikuti tinggi chart di kiri */}
-          <div className="flex flex-col gap-4 h-full">
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-4 h-full">
             
-            <div className="flex-1">
+            <div className="flex-1 w-full sm:w-1/2 lg:w-full">
               {/* Nantinya ini diganti dengan komponen MoM Card */}
               <AccuracyGrowthCard 
                 currentAccuracy={overallAccMoMCurrent} 
@@ -175,8 +182,8 @@ export default async function ExecutiveSummary({
               />
             </div>
 
-            <div className="flex-1">
-              <PlantAchievementCard data={plantComparison} target={75} />
+            <div className="flex-1 w-full sm:w-1/2 lg:w-full">
+              <PlantAchievementCard data={plantComparison} year={selectedYear} />
             </div>
 
           </div>
@@ -189,6 +196,7 @@ export default async function ExecutiveSummary({
             <TrendAccuracyChartWeekly 
               data={weeklyTrend} 
               currentMonth={currentMonthForMoM} 
+              year={selectedYear}
             />
           </div>
           <div className="lg:col-span-2">
@@ -197,10 +205,7 @@ export default async function ExecutiveSummary({
         </div>   
 
       </div>
-
-      <footer className="text-center text-xs text-slate-500 py-6 mt-10 border-t border-slate-200">
-        © 2025 Digital Production | National Supply Chain
-      </footer>      
+     
     </main>
   );
 }
