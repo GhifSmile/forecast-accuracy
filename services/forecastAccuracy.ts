@@ -550,24 +550,24 @@ export const ForecastAccuracyService = {
         if (filtered.length === 0) return 0;
 
         // Agregasi per CODE (SKU)
-        const summaryMap = new Map<string, { f: number; s: number }>();
+        const summaryMap = new Map<string, { sum_f: number; sum_s: number }>();
         for (const row of filtered) {
-          const current = summaryMap.get(row.code) || { f: 0, s: 0 };
-          current.f += Number(row.forecast) || 0;
-          current.s += Number(row.sales) || 0;
+          const current = summaryMap.get(row.code) || { sum_f: 0, sum_s: 0 };
+          current.sum_f += Number(row.forecast) || 0;
+          current.sum_s += Number(row.sales) || 0;
           summaryMap.set(row.code, current);
         }
 
         // Logic validasi error sesuai instruksi Anda
         const validErrors: number[] = [];
         for (const summary of summaryMap.values()) {
-          const { f, s } = summary;
+          const { sum_f, sum_s } = summary;
           let validErrorValue = 0.0;
 
-          if (f <= 0 || s <= 0) {
+          if (sum_f <= 0 || sum_s <= 0) {
             validErrorValue = 0.0;
           } else {
-            const rawErrorRate = Math.abs(f - s) / f;
+            const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
             validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
           }
 
