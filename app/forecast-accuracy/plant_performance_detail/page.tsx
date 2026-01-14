@@ -8,7 +8,7 @@ import { ForecastAccuracyService } from "@/services/forecastAccuracy";
 export default async function PerformanceDetailPage({
   searchParams,
 }: {
-  searchParams: Promise<any>;
+  searchParams: Promise<any>; 
 }) {
   const params = await searchParams;
   const options = await ForecastAccuracyService.getFilterOptions();
@@ -116,8 +116,7 @@ export default async function PerformanceDetailPage({
                     return (
                       <tr key={idx} className="hover:bg-slate-50 transition-colors odd:bg-white even:bg-slate-50 group">
                         {/* Sel harus punya bg-white/bg-slate-50 secara eksplisit tanpa celah */}
-                        <td className="px-4 py-3 font-bold text-slate-800 sticky left-0 z-10 
-                          bg-white group-even:bg-slate-50 group-hover:bg-slate-100 truncate">
+                        <td className="px-4 py-3 font-bold text-slate-800 sticky left-0 bg-inherit group-hover:bg-slate-100 truncate">
                           {row.plant}
                         </td>
                         
