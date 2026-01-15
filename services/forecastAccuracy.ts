@@ -250,11 +250,19 @@ export const ForecastAccuracyService = {
   },
 
   getMonthlyPerformance: async (filters: AccuracyFilters): Promise<MonthlyPerformanceData[]> => {
-    const targetYear = filters.year;
+    
+    const yearClause = sql`AND year = ${filters.year}`;
+
+    const plantClause = filters.plants && filters.plants.length > 0 
+      ? sql`AND plant IN (${sql.join(filters.plants, sql`, `)})` 
+      : sql``;
+    
     try {
       const result = await db.execute(sql`
         SELECT * FROM plant_performance_detail_monthly
-        WHERE year = ${targetYear}
+        WHERE 1=1
+        ${yearClause}
+        ${plantClause}
         ORDER BY plant ASC, business_unit ASC
       `);
 
@@ -263,7 +271,7 @@ export const ForecastAccuracyService = {
       return rows.map((row) => ({
         plant: row.plant ?? "Unknown",
         businessUnit: row.business_unit ?? "N/A",
-        year: Number(row.year) || targetYear,
+        year: Number(row.year),
         monthlyData: [
           { month: 'Jan', value: Number(row.jan) * 100 || 0 },
           { month: 'Feb', value: Number(row.feb) * 100 || 0 },
@@ -353,8 +361,6 @@ export const ForecastAccuracyService = {
         ${plantClause}
         ${weekClause}
       `);
-
-      // console.log("anjay - adasdad    ".replace(/\s+/g, ' ').trim())
 
       return result as unknown as RawDataRow[];
       

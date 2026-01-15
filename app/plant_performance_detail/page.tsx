@@ -17,8 +17,13 @@ export default async function PerformanceDetailPage({
     ? Number(params.year.split(",")[0])
     : options.year[0];
 
+  const selectedPlants = params.plant 
+    ? String(params.plant).split(",").filter((v) => v !== "") 
+    : [];    
+
   const filters = {
     year: selectedYear,
+    plants: selectedPlants,
   };
 
   const performanceData = await ForecastAccuracyService.getMonthlyPerformance(filters);
@@ -51,7 +56,7 @@ export default async function PerformanceDetailPage({
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-              <FilterGroup options={options} showMonth={false} showPlant={false} />
+              <FilterGroup options={options} showMonth={false} />
             </div>
             <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
               <DownloadButton />

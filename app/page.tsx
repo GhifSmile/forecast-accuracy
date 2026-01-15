@@ -1,4 +1,3 @@
-import { FileUp } from "lucide-react";
 import Navigation from "@/components/dashboard/Navigation";
 import FilterGroup from "@/components/dashboard/filterGroup";
 
