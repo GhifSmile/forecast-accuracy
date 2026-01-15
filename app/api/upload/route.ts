@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     if (!isFileValid) {
       return NextResponse.json(
         {
-          error: `Upload dibatalkan. Baris ke-${firstErrorRow - 1} tidak lengkap.`,
+          error: `Upload dibatalkan. Baris ke-${firstErrorRow} tidak lengkap.`,
         },
         { status: 400 }
       );

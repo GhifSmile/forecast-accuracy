@@ -20,22 +20,16 @@ export const dataCollectionForecastAccuracy = pgTable("data_collection_forecast_
 
 });
 
-export const user = pgTable("master_user", {
-  id: serial("id").primaryKey(),
+export const users = pgTable("users", {
+  id: varchar({ length: 36 }).primaryKey(),
 
-  email: varchar("email", { length: 100 }).notNull(),
+  name: varchar({ length: 255 }),
 
-  password: text("password").notNull(),
+  email: varchar({ length: 255 }).notNull().unique(),
 
-  role: varchar("role", { length: 50 }).notNull(),
+  role: varchar({ length: 20 }).default("officer"),
 
-  is_active: boolean("is_active").notNull().default(true),
-
-  created_at: timestamp("created_at", { mode: "date" })
-    .defaultNow(),
-
-  updated_at: timestamp("updated_at", { mode: "date" })
-    .defaultNow(),
+  created_at: timestamp({ mode: "date" }).defaultNow(),
 });
 
 export const trendAnalysisMonthly = pgView("trend_analysis_monthly", {	year: integer(),

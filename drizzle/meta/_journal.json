@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1767697199924,
-      "tag": "0000_many_blockbuster",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1767697709659,
-      "tag": "0001_spotty_colleen_wing",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1768149623877,
-      "tag": "0002_lucky_violations",
+      "when": 1768452275899,
+      "tag": "0000_gigantic_saracen",
       "breakpoints": true
     }
   ]
