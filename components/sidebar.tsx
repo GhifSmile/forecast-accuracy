@@ -54,15 +54,16 @@ const MENU = [
         href: "/forecast-accuracy/executive_summary",
         icon: BarChart3,
       },
-      {
-        title: "Trend Analysis",
-        href: "/forecast-accuracy/trend_analysis",
-        icon: TrendingUp,
-      },
+
       {
         title: "Plant Performance Detail",
         href: "/forecast-accuracy/plant_performance_detail",
         icon: FileText,
+      },
+            {
+        title: "Trend Analysis",
+        href: "/forecast-accuracy/trend_analysis",
+        icon: TrendingUp,
       },
     ],
   },
