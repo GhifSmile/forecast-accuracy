@@ -7,28 +7,18 @@ export default function ForecastAccuracyLayout({
 }) {
   return (
     <section className="w-full h-full">
-      {/* Section Header */}
-      <div className="mb-4">
+     
+      {/* <div className="mb-4">
         <h1 className="text-xl font-semibold">
           Forecast Accuracy
         </h1>
         <p className="text-sm text-muted-foreground">
           Performance & accuracy monitoring
         </p>
-      </div>
+      </div> */}
 
       {/* Content Wrapper */}
-      <div
-        className="
-          bg-white
-          rounded-lg
-          border
-          p-4
-          sm:p-6
-          w-full
-          overflow-x-auto
-        "
-      >
+      <div>
         {children}
       </div>
     </section>

@@ -28,11 +28,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const currentYear = new Date().getFullYear();
-
-
-  // const userRole: UserRole = "viewer";
   const userRole: UserRole = "officer";
+  const currentYear = new Date().getFullYear();
 
   return (
     <html lang="en">
@@ -45,14 +42,13 @@ export default function RootLayout({
       >
         <SessionProviderWrapper>
           <SidebarProvider>
-            <div className="flex min-h-screen">
+            <div className="flex min-h-screen w-full overflow-hidden">
               <AppSidebar role={userRole} />
 
-              <div className="flex flex-col flex-1">
+              {/* CONTENT */}
+              <div className="flex flex-col flex-1 transition-all duration-300">
                 <main className="flex-1 p-6 bg-slate-50">
-
                   {children}
-
                 </main>
 
                 <footer className="border-t bg-white text-xs text-slate-500 text-center py-4">

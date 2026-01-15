@@ -15,6 +15,8 @@ import UploadButton from "@/components/dashboard/UploadButton";
 
 // Import Service yang sudah kita buat
 import { ForecastAccuracyService } from "@/services/forecastAccuracy";
+import RoleGuard from "@/components/guard/RoleGuard";
+
 
 export default async function ExecutiveSummary({
   searchParams,
@@ -126,9 +128,9 @@ export default async function ExecutiveSummary({
               </div>
             </div>
             
-            <div className="w-full lg:w-auto flex justify-center">
+            {/* <div className="w-full lg:w-auto flex justify-center">
               <Navigation />
-            </div>
+            </div> */}
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
@@ -137,10 +139,12 @@ export default async function ExecutiveSummary({
                <FilterGroup options={options} />
             </div>
              
-            <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
-              <DownloadButton />
-              <UploadButton />
-            </div>
+<div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
+  <RoleGuard allow={["officer"]}>
+    <DownloadButton />
+    <UploadButton />
+  </RoleGuard>
+</div>
                 
           </div>
           

@@ -2,13 +2,13 @@ import Navigation from "@/components/dashboard/Navigation";
 import FilterGroup from "@/components/dashboard/filterGroup";
 import UploadButton from "@/components/dashboard/UploadButton";
 import DownloadButton from "@/components/dashboard/downloadButton";
-
 import { ForecastAccuracyService } from "@/services/forecastAccuracy";
+import RoleGuard from "@/components/guard/RoleGuard";
 
 export default async function PerformanceDetailPage({
   searchParams,
 }: {
-  searchParams: Promise<any>; 
+  searchParams: Promise<any>;
 }) {
   const params = await searchParams;
   const options = await ForecastAccuracyService.getFilterOptions();
@@ -30,11 +30,11 @@ export default async function PerformanceDetailPage({
           <div className="flex flex-col lg:flex-row justify-between items-center lg:items-start gap-4 text-center lg:text-left">
             <div className="flex flex-col items-center lg:items-start gap-0">
               <div className="relative h-24 md:h-32 w-auto overflow-hidden flex-shrink-0">
-                <img
+                {/* <img
                   src="/image_png_1.PNG"
                   alt="Logo"
                   className="h-full w-auto object-contain object-left opacity-20 scale-120"
-                />
+                /> */}
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tighter uppercase">
@@ -54,8 +54,10 @@ export default async function PerformanceDetailPage({
               <FilterGroup options={options} showMonth={false} showPlant={false} />
             </div>
             <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
-              <DownloadButton />
-              <UploadButton />
+              <RoleGuard allow={["officer"]}>
+                <DownloadButton />
+                <UploadButton />
+              </RoleGuard>
             </div>
           </div>
         </div>
@@ -72,25 +74,25 @@ export default async function PerformanceDetailPage({
                   <th className="w-[80px] px-4 py-3 sticky left-0 z-20 bg-[#00C9A7]">Plant</th>
                   <th className="w-[100px] px-4 py-3 sticky left-[80px] z-20 bg-[#00C9A7]">Segment</th>
                   <th className="w-[60px] px-4 py-3 text-center sticky left-[180px] z-20 bg-[#00C9A7]">Year</th>
-                  
+
                   {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m) => (
                     <th key={m} className="w-[65px] px-2 py-3 border-r border-white/10 text-center">{m}</th>
                   ))}
-                  
+
                   <th className="w-[80px] px-4 py-3 border-r border-white/10 text-center">YTD Avg</th>
                   <th className="w-[80px] px-4 py-3 border-r border-white/10 text-center">VS Target</th>
                   <th className="w-[80px] px-4 py-3 border-r border-white/10 text-center">Status</th>
                   <th className="w-[150px] px-4 py-3">Action Needed</th>
                 </tr>
               </thead>
-              
+
               <tbody className="divide-y divide-slate-100">
                 {performanceData.length > 0 ? (
                   performanceData.map((row, idx) => {
 
                     const businessUnit = row.businessUnit?.toLowerCase();
-                    const target = row.year >= 2026 
-                      ? 80 
+                    const target = row.year >= 2026
+                      ? 80
                       : (businessUnit === 'fish' ? 78 : 70);
 
                     const ytd = row.ytdAvg;
@@ -119,12 +121,12 @@ export default async function PerformanceDetailPage({
                         <td className="px-4 py-3 font-bold text-slate-800 sticky left-0 bg-inherit group-hover:bg-slate-100 truncate">
                           {row.plant}
                         </td>
-                        
+
                         <td className="px-4 py-3 uppercase sticky left-[80px] z-10 
                           bg-white group-even:bg-slate-50 group-hover:bg-slate-100 truncate">
                           {row.businessUnit}
                         </td>
-                        
+
                         {/* Kolom terakhir sticky diberikan border kanan tipis sebagai batas rapat */}
                         <td className="px-4 py-3 text-center sticky left-[180px] z-10 
                           bg-white group-even:bg-slate-50 group-hover:bg-slate-100 border-r border-slate-200/50">

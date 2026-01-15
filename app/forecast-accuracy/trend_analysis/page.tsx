@@ -3,28 +3,30 @@ import Navigation from "@/components/dashboard/Navigation";
 import UploadButton from "@/components/dashboard/UploadButton";
 import DownloadButton from "@/components/dashboard/downloadButton";
 import FilterGroup from "@/components/dashboard/filterGroup";
+import RoleGuard from "@/components/guard/RoleGuard";
+
 
 export default async function TrendAnalysis({
   searchParams,
 }: {
   searchParams: Promise<any>;
 }) {
-  
+
   const params = await searchParams;
   const options = await ForecastAccuracyService.getFilterOptions();
 
-  const selectedYear = params.year 
-    ? Number(params.year.split(",")[0]) 
+  const selectedYear = params.year
+    ? Number(params.year.split(",")[0])
     : options.year[0];
 
-  const selectedMonths = params.month 
-    ? String(params.month).split(",").map(Number).filter((n) => !isNaN(n)) 
-    : [];    
+  const selectedMonths = params.month
+    ? String(params.month).split(",").map(Number).filter((n) => !isNaN(n))
+    : [];
 
   const filters = {
     year: selectedYear,
     months: selectedMonths,
-  };  
+  };
 
   const trendData = await ForecastAccuracyService.getTrendAnalysis(filters);
 
@@ -34,13 +36,13 @@ export default async function TrendAnalysis({
       {/* HEADER SECTION */}
       <header className="bg-[#FF8C00] pt-4 pb-6 px-6 text-white shadow-lg">
         <div className="max-w-7xl mx-auto">
-          
+
           <div className="flex flex-col lg:flex-row justify-between items-center lg:items-start gap-4 text-center lg:text-left">
             <div className="flex flex-col items-center lg:items-start gap-0">
               <div className="relative h-24 md:h-32 w-auto overflow-hidden flex-shrink-0">
-                <img 
+                <img
                   src="/image_png_1.PNG"
-                  alt="Logo" 
+                  alt="Logo"
                   className="h-full w-auto object-contain object-left opacity-20 scale-120"
                 />
               </div>
@@ -54,7 +56,7 @@ export default async function TrendAnalysis({
                 </p>
               </div>
             </div>
-            
+
             <div className="w-full lg:w-auto flex justify-center">
               <Navigation />
             </div>
@@ -62,11 +64,13 @@ export default async function TrendAnalysis({
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-               <FilterGroup options={options} showPlant={false} />
+              <FilterGroup options={options} showPlant={false} />
             </div>
             <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
-              <DownloadButton />
-              <UploadButton />
+              <RoleGuard allow={["officer"]}>
+                <DownloadButton />
+                <UploadButton />
+              </RoleGuard>
             </div>
           </div>
         </div>
@@ -83,7 +87,7 @@ export default async function TrendAnalysis({
                   {/* Sticky Column: Year (60px) + Month (80px) = 140px total sticky */}
                   <th className="w-[60px] px-4 py-3 sticky left-0 z-20 bg-[#00C9A7]">Year</th>
                   <th className="w-[80px] px-4 py-3 sticky left-[60px] z-20 bg-[#00C9A7] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">Month</th>
-                  
+
                   <th className="w-[120px] px-4 py-3 border-r border-white/10 text-center">Overall Accuracy</th>
                   <th className="w-[120px] px-4 py-3 border-r border-white/10 text-center">Fish Accuracy</th>
                   <th className="w-[120px] px-4 py-3 border-r border-white/10 text-center">Shrimp Accuracy</th>
@@ -109,19 +113,19 @@ export default async function TrendAnalysis({
                       </td>
 
                       <td className="px-4 py-3 border-r border-slate-100 text-center font-bold">
-                          {row.overallAccuracy.toFixed(2)}%
+                        {row.overallAccuracy.toFixed(2)}%
                       </td>
                       <td className="px-4 py-3 border-r border-slate-100 text-center">
-                          {row.fishAccuracy.toFixed(2)}%
+                        {row.fishAccuracy.toFixed(2)}%
                       </td>
                       <td className="px-4 py-3 border-r border-slate-100 text-center">
-                          {row.shrimpAccuracy.toFixed(2)}%
+                        {row.shrimpAccuracy.toFixed(2)}%
                       </td>
                       <td className="px-4 py-3 border-r border-slate-100 text-center font-semibold text-teal-600">
-                          {row.bestPerforming}
+                        {row.bestPerforming}
                       </td>
                       <td className="px-4 py-3 text-center font-semibold text-red-600">
-                          {row.worstPerforming}
+                        {row.worstPerforming}
                       </td>
                     </tr>
                   ))
