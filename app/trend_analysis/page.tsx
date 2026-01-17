@@ -82,7 +82,7 @@ export default async function TrendAnalysis({
                 <tr className="bg-[#00C9A7] text-white uppercase tracking-wider font-bold">
                   {/* Sticky Column: Year (60px) + Month (80px) = 140px total sticky */}
                   <th className="w-[60px] px-4 py-3 sticky left-0 z-20 bg-[#00C9A7]">Year</th>
-                  <th className="w-[80px] px-4 py-3 sticky left-[60px] z-20 bg-[#00C9A7] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">Month</th>
+                  <th className="w-[80px] px-4 py-3 sticky left-[60px] z-20 bg-[#00C9A7]">Month</th>
                   
                   <th className="w-[120px] px-4 py-3 border-r border-white/10 text-center">Overall Accuracy</th>
                   <th className="w-[120px] px-4 py-3 border-r border-white/10 text-center">Fish Accuracy</th>
@@ -97,18 +97,17 @@ export default async function TrendAnalysis({
                     <tr key={idx} className="hover:bg-slate-50 transition-colors odd:bg-white even:bg-slate-50 group">
                       {/* Sticky Year: BG Solid, No Transparency */}
                       <td className="px-4 py-3 sticky left-0 z-10 
-                        bg-white group-even:bg-slate-50 group-hover:bg-slate-100 border-r border-slate-100/50">
+                        bg-white group-even:bg-slate-50 group-hover:bg-slate-100 font-bold">
                         {row.year}
                       </td>
 
                       {/* Sticky Month: BG Solid + Shadow Kanan agar konten lewat di bawahnya */}
-                      <td className="px-4 py-3 sticky left-[60px] z-10 font-medium
-                        bg-white group-even:bg-slate-50 group-hover:bg-slate-100 
-                        shadow-[4px_0_4px_-2px_rgba(0,0,0,0.1)] border-r border-slate-100/50">
+                      <td className="px-4 py-3 sticky left-[60px] z-10
+                        bg-white group-even:bg-slate-50 group-hover:bg-slate-100 font-bold">
                         {row.month}
                       </td>
 
-                      <td className="px-4 py-3 border-r border-slate-100 text-center font-bold">
+                      <td className="px-4 py-3 border-r border-slate-100 text-center">
                           {row.overallAccuracy.toFixed(2)}%
                       </td>
                       <td className="px-4 py-3 border-r border-slate-100 text-center">
