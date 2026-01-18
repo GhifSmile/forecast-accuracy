@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
         const rowWeek = Number(rawValues[2]);
 
         const plant = sanitizeStr(rawValues[3]).toUpperCase();
-        const businessUnit = sanitizeStr(rawValues[4]);
-        const category = sanitizeStr(rawValues[5]);
+        const businessUnit = sanitizeStr(rawValues[4]).toLowerCase();
+        const category = sanitizeStr(rawValues[5]).toLowerCase();
         const code = sanitizeStr(rawValues[6]).toUpperCase();
 
         // INSERT payload
