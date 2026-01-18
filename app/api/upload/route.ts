@@ -28,8 +28,19 @@ export async function POST(req: NextRequest) {
 
     const clean = (val: any) => {
       if (val === null || val === undefined) return null;
-      if (typeof val === "object" && val.result !== undefined) return val.result;
+      // Jika sel adalah formula, ambil hasil (result)-nya saja
+      if (typeof val === "object") {
+        if (val.result !== undefined && val.result !== null) return val.result;
+        if (val.error !== undefined) return null; 
+        return val; 
+      }
       return val;
+    };
+
+    const parseSafeNumber = (val: any): number => {
+      const num = Number(val);
+      // Jika hasil konversi adalah NaN atau tidak terhingga, kembalikan 0
+      return isNaN(num) || !isFinite(num) ? 0 : num;
     };
 
     const sanitizeStr = (val: any) => {
@@ -81,9 +92,9 @@ export async function POST(req: NextRequest) {
           ${businessUnit}::varchar,
           ${category}::varchar,
           ${code}::varchar,
-          ${Number(rawValues[7])}::numeric,
-          ${Number(rawValues[8])}::numeric,
-          ${Number(rawValues[9])}::numeric,
+          ${parseSafeNumber(rawValues[7])}::numeric, 
+          ${parseSafeNumber(rawValues[8])}::numeric,
+          ${parseSafeNumber(rawValues[9])}::numeric,
           NOW()
         )`);
 
