@@ -62,7 +62,7 @@ export default async function TrendAnalysis({
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mt-4 pt-4 border-t border-white/20">
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 order-2 lg:order-1">
-               <FilterGroup options={options} showPlant={false} />
+               <FilterGroup options={options} showPlant={false} showBU={false}/>
             </div>
             <div className="flex flex-wrap justify-center lg:justify-end gap-3 order-1 lg:order-2">
               <DownloadButton />

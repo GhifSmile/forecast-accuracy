@@ -10,8 +10,10 @@ interface FilterGroupProps {
     year: number[];
     plants: string[];
     months: { id: number; name: string }[];
+    business_unit: string[];
   };
   showPlant?: boolean;
+  showBU?: boolean;  
   showYear?: boolean;
   showMonth?: boolean;
 }
@@ -19,6 +21,7 @@ interface FilterGroupProps {
 export default function FilterGroup({ 
   options, 
   showPlant = true, 
+  showBU = true,  
   showYear = true, 
   showMonth = true 
 }: FilterGroupProps) {
@@ -32,6 +35,7 @@ export default function FilterGroup({
 
   const yearsData = useMemo(() => options?.year || [], [options]);
   const plantsData = useMemo(() => options?.plants || [], [options]);
+  const BUData = useMemo(() => options?.business_unit || [], [options]);  
   const monthsData = useMemo(() => options?.months || [], [options]);
 
   // --- 1. LOGIKA UPDATE FILTER ---
@@ -93,8 +97,14 @@ export default function FilterGroup({
         const m = monthsData.find((item) => String(item.id) === String(values[0]));
         return `${label}: ${m ? m.name : values[0]}`;
       }
+
+      if (key === "business_unit") {
+        const val = values[0];
+        return `${label}: ${val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()}`;
+      }
+
       return `${label}: ${values[0]}`;
-    }
+    }    
     
     return `${label}: ${values.length} Selected`;
   };
@@ -152,7 +162,10 @@ export default function FilterGroup({
 
             {items.map((item: any) => {
               const val = valueKey ? String(item[valueKey]) : String(item);
-              const display = displayKey ? String(item[displayKey]) : String(item);
+              let display = displayKey ? String(item[displayKey]) : String(item);
+              if (id === "business_unit") {
+                display = display.charAt(0).toUpperCase() + display.slice(1).toLowerCase();   
+              }           
               const active = isSelected(id, val);
 
               return (
@@ -179,6 +192,7 @@ export default function FilterGroup({
   return (
     <div ref={containerRef} className="flex flex-wrap items-center justify-center lg:justify-start gap-3 w-full lg:w-auto">
       {showPlant && <DropdownItem id="plant" label="Plant" items={plantsData} />}
+      {showBU && <DropdownItem id="business_unit" label="Segment" items={BUData} />}
       {showYear && <DropdownItem id="year" label="Year" items={yearsData} />}
       {showMonth && <DropdownItem id="month" label="Month" items={monthsData} valueKey="id" displayKey="name" />}
     </div>

@@ -48,7 +48,8 @@ interface AccuracyFilters {
   year: number;   
   months?: number[]; // Array untuk multi-select
   plants?: string[]; // Array untuk multi-select
-  week?: number
+  week?: number;
+  business_unit?: string[];
 }
 
 // --- INTERFACES FOR UI (Camel Case) ---
@@ -226,9 +227,22 @@ export const ForecastAccuracyService = {
       SELECT DISTINCT year FROM data_collection_forecast_accuracy 
       ORDER BY year DESC
     `);
+
+    const plantData = await db.execute(sql`
+        SELECT DISTINCT plant FROM data_collection_forecast_accuracy
+        ORDER BY plant ASC
+    `);
+
+    const BUData = await db.execute(sql`
+      SELECT DISTINCT business_unit FROM data_collection_forecast_accuracy
+      ORDER BY business_unit ASC  
+    `);
+
+
     return {
       year: (result as any).map((r: any) => Number(r.year)),
-      plants: ["CKP", "LPG", "MDN", "SBY", "SPJ"],
+      plants: (plantData as any).map((r: any) => r.plant),
+      business_unit: (BUData as any).map((r: any) => r.business_unit),      
       months: monthNames.map((name, i) => ({ id: i + 1, name }))
     };
   },
@@ -257,12 +271,17 @@ export const ForecastAccuracyService = {
       ? sql`AND plant IN (${sql.join(filters.plants, sql`, `)})` 
       : sql``;
     
+    const BUClause = filters.business_unit && filters.business_unit.length > 0 
+      ? sql`AND business_unit IN (${sql.join(filters.business_unit, sql`, `)})` 
+      : sql``; 
+
     try {
       const result = await db.execute(sql`
         SELECT * FROM plant_performance_detail_monthly
         WHERE 1=1
         ${yearClause}
         ${plantClause}
+        ${BUClause}
         ORDER BY plant ASC, business_unit ASC
       `);
 

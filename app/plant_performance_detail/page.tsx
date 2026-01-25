@@ -21,9 +21,14 @@ export default async function PerformanceDetailPage({
     ? String(params.plant).split(",").filter((v) => v !== "") 
     : [];    
 
+  const selectedBU = params.business_unit 
+    ? String(params.business_unit).split(",").filter((v) => v !== "") 
+    : []; 
+
   const filters = {
     year: selectedYear,
     plants: selectedPlants,
+    business_unit: selectedBU    
   };
 
   const performanceData = await ForecastAccuracyService.getMonthlyPerformance(filters);
