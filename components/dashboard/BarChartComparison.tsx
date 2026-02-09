@@ -39,7 +39,7 @@ export default function ComparisonBarChart({ data }: Props) {
   return (
     <Card className="shadow-sm rounded-xl overflow-visible border-none h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="text-lg font-bold text-black">Plant Comparison Accuracy</CardTitle>
+        <CardTitle className="text-lg font-bold text-black">Plant Group Comparison Accuracy</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 w-full min-h-[350px]">
         <ResponsiveContainer width="100%" height="100%">

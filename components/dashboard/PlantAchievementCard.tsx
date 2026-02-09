@@ -11,13 +11,20 @@ interface Props {
 }
 
 export default function PlantAchievementCard({ data, year }: Props) {
-  const target = year<2026? 75: 80;
-  const achievedCount = data.filter(p => p.overallAccuracy >= target).length;
-  const TOTAL_PLANTS = 5;
+  const targetFish = year < 2026 ? 78 : 80;
+  const targetShrimp = year < 2026 ? 70 : 80;
+  const achievedCount = data.reduce((acc, p) => {
+    let count = 0;
+    // Cek masing-masing kategori secara terpisah
+    if (p.fishAccuracy >= targetFish) count++;
+    if (p.shrimpAccuracy >= targetShrimp) count++;
+    return acc + count;
+  }, 0);
+  const TOTAL_PLANTS = 7;
   
   const chartData = [
     { name: "Achieved", value: achievedCount },
-    { name: "Remaining", value: TOTAL_PLANTS - achievedCount },
+    { name: "Remaining", value: Math.max(0, TOTAL_PLANTS - achievedCount) },
   ];
 
   // Menggunakan warna hex yang diminta untuk donut bagian achieved

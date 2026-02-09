@@ -98,6 +98,7 @@ export interface PlantSubmissionStatus {
 
 interface RawSubmissionRow {
   plant: string;
+  business_unit: string;
   week: number;
 }
 
@@ -166,6 +167,11 @@ export const ForecastAccuracyService = {
       let targetMonth: number;
       const defaultPlants = ["CKP", "LPG", "MDN", "SBY", "SPJ"];
 
+      const toTitleCase = (str: string) => {
+        if (!str) return "";
+        return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+      };      
+
       const activePlants = filters.plants && filters.plants.length > 0 
         ? filters.plants 
         : defaultPlants;
@@ -186,7 +192,7 @@ export const ForecastAccuracyService = {
         : sql``;
 
       const result = await db.execute(sql`
-        SELECT DISTINCT plant, week
+        SELECT DISTINCT plant, business_unit, week
         FROM data_collection_forecast_accuracy
         WHERE year = ${filters.year} 
           AND month = ${targetMonth}
@@ -196,20 +202,41 @@ export const ForecastAccuracyService = {
 
       const rows = result as unknown as RawSubmissionRow[];
 
-      return activePlants.map(plantName => {
-        const filledWeeks = rows
-          .filter(r => r.plant?.toUpperCase() === plantName.toUpperCase())
-          .map(r => Number(r.week));
+      const uniqueGroups = Array.from(
+        new Set(rows.map(r => `${r.plant}|${r.business_unit}`))
+      ).map(key => {
+        const [plant, business_unit] = key.split('|');
+        return { plant, business_unit };
+      });      
 
+      uniqueGroups.sort((a, b) => {
+        const plantCompare = a.plant.localeCompare(b.plant);
+        if (plantCompare !== 0) return plantCompare;
+        return a.business_unit.localeCompare(b.business_unit);
+      });
+
+      return uniqueGroups.map(group => {
+        const plantRows = rows.filter(r => 
+          r.plant?.toUpperCase() === group.plant.toUpperCase() &&
+          r.business_unit?.toUpperCase() === group.business_unit.toUpperCase()
+        );
+      
+        const formattedBU = toTitleCase(group.business_unit);
+        const displayName = formattedBU 
+          ? `${group.plant} - ${formattedBU}` 
+          : group.plant;
+      
+        const filledWeeks = plantRows.map(r => Number(r.week));
+      
         const details = [1, 2, 3, 4].map(w => ({
           week: w,
           isFilled: filledWeeks.includes(w)
         }));
-
+      
         const completedCount = details.filter(d => d.isFilled).length;
-
+      
         return {
-          plant: plantName,
+          plant: displayName,
           completedWeeks: completedCount,
           percentage: (completedCount / 4) * 100,
           details: details
