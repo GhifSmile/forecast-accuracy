@@ -144,7 +144,7 @@ function calculateAccuracyByUnit(data: RawDataRow[], businessUnitFilter: string 
       validErrorValue = 0.0;
     } else {
       const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
-      validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+      validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
     }
 
     if (validErrorValue > 0) {
@@ -472,7 +472,7 @@ export const ForecastAccuracyService = {
           } else {
             const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
             // Jika error > 100%, maka dianggap 0.0
-            validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+            validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
           }
         
           if (validErrorValue > 0) {
@@ -559,7 +559,7 @@ export const ForecastAccuracyService = {
           } else {
             const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
             // Jika error > 100%, maka dianggap 0.0
-            validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+            validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
           }
         
           if (validErrorValue > 0) {
@@ -620,7 +620,7 @@ export const ForecastAccuracyService = {
             validErrorValue = 0.0;
           } else {
             const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
-            validErrorValue = rawErrorRate > 1.0 ? 0.0 : rawErrorRate;
+            validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
           }
 
           // Jika > 0 maka masuk hitungan rata-rata (length bertambah)

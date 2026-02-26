@@ -1,146 +1,28 @@
-import { pgTable, integer, varchar, numeric, serial, boolean, text, timestamp, pgView } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
-
-
-export const dataCollectionForecastAccuracy = pgTable("data_collection_forecast_accuracy", {
-    year: integer(),
-    month: integer(),
-    week: integer(),
-    plant: varchar({ length: 50 }),
-    businessUnit: varchar("business_unit", { length: 50 }),
-    category: varchar({ length: 50 }),
-    code: varchar({ length: 50 }),
-    forecast: numeric(),
-    produksi: numeric(),
-    sales: numeric(),
-    createdAt: timestamp("created_at", {
-      mode: "date",
-    }),
-    upload_by: varchar({ length: 100 }),
-
-});
-
-export const users = pgTable("users", {
-  id: varchar({ length: 36 }).primaryKey(),
-
-  name: varchar({ length: 255 }),
-
-  email: varchar({ length: 255 }).notNull().unique(),
-
-  role: varchar({ length: 20 }).default("officer"),
-
-  created_at: timestamp({ mode: "date" }).defaultNow(),
-});
-
-export const trendAnalysisMonthly = pgView("trend_analysis_monthly", {	year: integer(),
-    month: integer(),
-    overallAccuracy: numeric("overall_accuracy"),
-    fishAccuracy: numeric("fish_accuracy"),
-    shrimpAccuracy: numeric("shrimp_accuracy"),
-    bestPerforming: varchar("best_performing"),
-    worstPerforming: varchar("worst_performing"),
-}).as(sql`WITH
-
-Code_Monthly_Agg AS (
-    SELECT
-        year,
-        month,
-        business_unit,
-        code,
-        SUM(forecast) as sum_f,
-        SUM(sales) as sum_s
-    FROM
-        data_collection_forecast_accuracy
-    GROUP BY
-        year, month, business_unit, code
-),
-
-Code_Error_Rates AS (
-    SELECT
-        *,
-        CAST(
-            CASE
-                WHEN sum_f <= 0 OR sum_s <= 0 THEN 0.0
-                WHEN ABS(sum_f - sum_s) / NULLIF(sum_f, 0) > 1.0 THEN 1.0
-                ELSE ABS(sum_f - sum_s) / NULLIF(sum_f, 0)
-            END AS DOUBLE PRECISION
-        ) AS error_val
-    FROM
-        Code_Monthly_Agg
-),
-
-Monthly_Metrics AS (
-    SELECT
-        year,
-        month,
-        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0)), 1.0) as overall_accuracy,
-        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0 AND business_unit = 'fish')), 1.0) as fish_accuracy,
-        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0 AND business_unit = 'shrimp')), 1.0) as shrimp_accuracy
-    FROM
-        Code_Error_Rates
-    GROUP BY
-        year, month
-),
-
-Plant_Rankings AS (
-    SELECT
-        year,
-        month,
-        CONCAT(plant, ' - ', INITCAP(business_unit)) as plant_bu,
-        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0)), 1.0) as plant_acc
-    FROM (
-        SELECT 
-            year, month, plant, business_unit, code,
-            CAST(CASE
-                WHEN SUM(forecast) <= 0 OR SUM(sales) <= 0 THEN 0.0
-                WHEN ABS(SUM(forecast) - SUM(sales)) / NULLIF(SUM(forecast), 0) > 1.0 THEN 1.0
-                ELSE ABS(SUM(forecast) - SUM(sales)) / NULLIF(SUM(forecast), 0)
-            END AS DOUBLE PRECISION) as error_val
-        FROM data_collection_forecast_accuracy
-        GROUP BY year, month, plant, business_unit, code
-    ) t
-    GROUP BY year, month, plant, business_unit
-),
-
-Ranked AS (
-    SELECT 
-        *,
-        RANK() OVER (PARTITION BY year, month ORDER BY plant_acc DESC) as r_best,
-        RANK() OVER (PARTITION BY year, month ORDER BY plant_acc ASC) as r_worst
-    FROM Plant_Rankings
-)
-
-SELECT
-    m.year,
-    m.month,
-    ROUND(CAST(m.overall_accuracy AS NUMERIC), 4) as overall_accuracy,
-    ROUND(CAST(m.fish_accuracy AS NUMERIC), 4) as fish_accuracy,
-    ROUND(CAST(m.shrimp_accuracy AS NUMERIC), 4) as shrimp_accuracy,
-    (SELECT STRING_AGG(plant_bu, ', ') FROM Ranked r WHERE r.year = m.year AND r.month = m.month AND r.r_best = 1) as best_performing,
-    (SELECT STRING_AGG(plant_bu, ', ') FROM Ranked r WHERE r.year = m.year AND r.month = m.month AND r.r_worst = 1) as worst_performing
-FROM
-    Monthly_Metrics m
-ORDER BY
-    m.year, m.month`);
-
-export const plantPerformanceDetailMonthly = pgView("plant_performance_detail_monthly", {	plant: varchar({ length: 50 }),
-    businessUnit: varchar("business_unit", { length: 50 }),
-    year: integer(),
-    jan: numeric(),
-    feb: numeric(),
-    mar: numeric(),
-    apr: numeric(),
-    may: numeric(),
-    jun: numeric(),
-    jul: numeric(),
-    aug: numeric(),
-    sep: numeric(),
-    oct: numeric(),
-    nov: numeric(),
-    dec: numeric(),
-    ytdAvg: numeric("ytd_avg"),
-    vsTarget: numeric("vs_target"),
-}).as(sql`WITH
+CREATE TABLE "data_collection_forecast_accuracy" (
+	"year" integer,
+	"month" integer,
+	"week" integer,
+	"plant" varchar(50),
+	"business_unit" varchar(50),
+	"category" varchar(50),
+	"code" varchar(50),
+	"forecast" numeric,
+	"produksi" numeric,
+	"sales" numeric,
+	"created_at" timestamp,
+	"upload_by" varchar(100)
+);
+--> statement-breakpoint
+CREATE TABLE "users" (
+	"id" varchar(36) PRIMARY KEY NOT NULL,
+	"name" varchar(255),
+	"email" varchar(255) NOT NULL,
+	"role" varchar(20) DEFAULT 'officer',
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "users_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
+CREATE VIEW "public"."plant_performance_detail_monthly" AS (WITH
 
 Code_Summary AS (
     SELECT
@@ -300,4 +182,87 @@ FROM
 INNER JOIN 
     Final_YTD_Error t9 ON t8.year = t9.year AND t8.plant = t9.plant AND t8.business_unit = t9.business_unit
 ORDER BY
-    t8.year, t8.plant, t8.business_unit`);
+    t8.year, t8.plant, t8.business_unit);--> statement-breakpoint
+CREATE VIEW "public"."trend_analysis_monthly" AS (WITH
+
+Code_Monthly_Agg AS (
+    SELECT
+        year,
+        month,
+        business_unit,
+        code,
+        SUM(forecast) as sum_f,
+        SUM(sales) as sum_s
+    FROM
+        data_collection_forecast_accuracy
+    GROUP BY
+        year, month, business_unit, code
+),
+
+Code_Error_Rates AS (
+    SELECT
+        *,
+        CAST(
+            CASE
+                WHEN sum_f <= 0 OR sum_s <= 0 THEN 0.0
+                WHEN ABS(sum_f - sum_s) / NULLIF(sum_f, 0) > 1.0 THEN 1.0
+                ELSE ABS(sum_f - sum_s) / NULLIF(sum_f, 0)
+            END AS DOUBLE PRECISION
+        ) AS error_val
+    FROM
+        Code_Monthly_Agg
+),
+
+Monthly_Metrics AS (
+    SELECT
+        year,
+        month,
+        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0)), 1.0) as overall_accuracy,
+        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0 AND business_unit = 'fish')), 1.0) as fish_accuracy,
+        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0 AND business_unit = 'shrimp')), 1.0) as shrimp_accuracy
+    FROM
+        Code_Error_Rates
+    GROUP BY
+        year, month
+),
+
+Plant_Rankings AS (
+    SELECT
+        year,
+        month,
+        CONCAT(plant, ' - ', INITCAP(business_unit)) as plant_bu,
+        COALESCE(1.0 - (AVG(error_val) FILTER (WHERE error_val > 0)), 1.0) as plant_acc
+    FROM (
+        SELECT 
+            year, month, plant, business_unit, code,
+            CAST(CASE
+                WHEN SUM(forecast) <= 0 OR SUM(sales) <= 0 THEN 0.0
+                WHEN ABS(SUM(forecast) - SUM(sales)) / NULLIF(SUM(forecast), 0) > 1.0 THEN 1.0
+                ELSE ABS(SUM(forecast) - SUM(sales)) / NULLIF(SUM(forecast), 0)
+            END AS DOUBLE PRECISION) as error_val
+        FROM data_collection_forecast_accuracy
+        GROUP BY year, month, plant, business_unit, code
+    ) t
+    GROUP BY year, month, plant, business_unit
+),
+
+Ranked AS (
+    SELECT 
+        *,
+        RANK() OVER (PARTITION BY year, month ORDER BY plant_acc DESC) as r_best,
+        RANK() OVER (PARTITION BY year, month ORDER BY plant_acc ASC) as r_worst
+    FROM Plant_Rankings
+)
+
+SELECT
+    m.year,
+    m.month,
+    ROUND(CAST(m.overall_accuracy AS NUMERIC), 4) as overall_accuracy,
+    ROUND(CAST(m.fish_accuracy AS NUMERIC), 4) as fish_accuracy,
+    ROUND(CAST(m.shrimp_accuracy AS NUMERIC), 4) as shrimp_accuracy,
+    (SELECT STRING_AGG(plant_bu, ', ') FROM Ranked r WHERE r.year = m.year AND r.month = m.month AND r.r_best = 1) as best_performing,
+    (SELECT STRING_AGG(plant_bu, ', ') FROM Ranked r WHERE r.year = m.year AND r.month = m.month AND r.r_worst = 1) as worst_performing
+FROM
+    Monthly_Metrics m
+ORDER BY
+    m.year, m.month);
