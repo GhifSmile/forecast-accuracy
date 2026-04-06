@@ -59,8 +59,9 @@ Code_Error_Rates AS (
     SELECT
         *,
         CAST(
-            CASE
-                WHEN sum_f <= 0 OR sum_s <= 0 THEN 0.0
+            case
+	            when sum_f = 0 and sum_s = 0 then null
+                WHEN sum_f = 0 OR sum_s = 0 THEN 1.0
                 WHEN ABS(sum_f - sum_s) / NULLIF(sum_f, 0) > 1.0 THEN 1.0
                 ELSE ABS(sum_f - sum_s) / NULLIF(sum_f, 0)
             END AS DOUBLE PRECISION
@@ -91,8 +92,9 @@ Plant_Rankings AS (
     FROM (
         SELECT 
             year, month, plant, business_unit, code,
-            CAST(CASE
-                WHEN SUM(forecast) <= 0 OR SUM(sales) <= 0 THEN 0.0
+            CAST(case
+	            when SUM(forecast) = 0 and SUM(sales) = 0 THEN null
+                WHEN SUM(forecast) = 0 OR SUM(sales) = 0 THEN 1.0
                 WHEN ABS(SUM(forecast) - SUM(sales)) / NULLIF(SUM(forecast), 0) > 1.0 THEN 1.0
                 ELSE ABS(SUM(forecast) - SUM(sales)) / NULLIF(SUM(forecast), 0)
             END AS DOUBLE PRECISION) as error_val
@@ -160,8 +162,9 @@ Code_Summary AS (
 Code_Error_Monthly AS (
     SELECT
         t2.*,
-        CASE
-            WHEN t2.sum_f <= 0 OR t2.sum_s <= 0 THEN 0.0
+        case
+	        WHEN t2.sum_f = 0 AND t2.sum_s = 0 then null
+            WHEN t2.sum_f = 0 OR t2.sum_s = 0 THEN 1.0
             WHEN ABS(t2.sum_f - t2.sum_s) / NULLIF(t2.sum_f, 0) > 1 THEN 1.0
             ELSE ABS(t2.sum_f - t2.sum_s) / NULLIF(t2.sum_f, 0)
         END AS valid_error_value
@@ -227,8 +230,9 @@ BU_Avg_Error_YTD AS (
         t6.plant,
         t6.business_unit,
         
-        CASE
-            WHEN t6.sum_f_ytd <= 0 OR t6.sum_s_ytd <= 0 THEN 0.0
+        case
+	        WHEN t6.sum_f_ytd = 0 and t6.sum_s_ytd = 0 THEN null
+            WHEN t6.sum_f_ytd = 0 OR t6.sum_s_ytd = 0 THEN 1.0
             WHEN ABS(t6.sum_f_ytd - t6.sum_s_ytd) / NULLIF(t6.sum_f_ytd, 0) > 1 THEN 1.0
             ELSE ABS(t6.sum_f_ytd - t6.sum_s_ytd) / NULLIF(t6.sum_f_ytd, 0)
         END AS valid_error_value_ytd,

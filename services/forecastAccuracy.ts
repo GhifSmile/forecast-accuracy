@@ -138,16 +138,18 @@ function calculateAccuracyByUnit(data: RawDataRow[], businessUnitFilter: string 
   for (const summary of summaryMap.values()) {
     const sum_f = summary.sum_f;
     const sum_s = summary.sum_s;
-    let validErrorValue = 0;
+    let validErrorValue: number | null = 0;
 
-    if (sum_f <= 0 || sum_s <= 0) {
-      validErrorValue = 0.0;
+    if (sum_f === 0 && sum_s === 0){
+      validErrorValue = null;
+    } else if (sum_f === 0 || sum_s === 0) {
+      validErrorValue = 1.0;
     } else {
       const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
       validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
     }
 
-    if (validErrorValue > 0) {
+    if (validErrorValue !== null && validErrorValue > 0) {
       validErrors.push(validErrorValue);
     }
   }
@@ -465,17 +467,18 @@ export const ForecastAccuracyService = {
         const validErrors: number[] = [];
         for (const summary of summaryMap.values()) {
           const { sum_f, sum_s } = summary;
-          let validErrorValue = 0.0;
-        
-          if (sum_f <= 0 || sum_s <= 0) {
-            validErrorValue = 0.0;
+          let validErrorValue: number | null = 0;
+          
+          if (sum_f === 0 && sum_s === 0){
+            validErrorValue = null;
+          } else if (sum_f === 0 || sum_s === 0) {
+            validErrorValue = 1.0;
           } else {
             const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
-            // Jika error > 100%, maka dianggap 0.0
             validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
           }
         
-          if (validErrorValue > 0) {
+          if (validErrorValue !== null && validErrorValue > 0) {
             validErrors.push(validErrorValue);
           }
         }
@@ -552,17 +555,18 @@ export const ForecastAccuracyService = {
         const validErrors: number[] = [];
         for (const summary of summaryMap.values()) {
           const { sum_f, sum_s } = summary;
-          let validErrorValue = 0.0;
+          let validErrorValue: number | null = 0;
         
-          if (sum_f <= 0 || sum_s <= 0) {
-            validErrorValue = 0.0;
+          if (sum_f === 0 && sum_s === 0){
+            validErrorValue = null;
+          } else if (sum_f === 0 || sum_s === 0) {
+            validErrorValue = 1.0;
           } else {
             const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
-            // Jika error > 100%, maka dianggap 0.0
             validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
           }
         
-          if (validErrorValue > 0) {
+          if (validErrorValue !== null && validErrorValue > 0) {
             validErrors.push(validErrorValue);
           }
         }
@@ -614,17 +618,19 @@ export const ForecastAccuracyService = {
         const validErrors: number[] = [];
         for (const summary of summaryMap.values()) {
           const { sum_f, sum_s } = summary;
-          let validErrorValue = 0.0;
+          let validErrorValue: number | null = 0;
 
-          if (sum_f <= 0 || sum_s <= 0) {
-            validErrorValue = 0.0;
+          if (sum_f === 0 && sum_s === 0){
+            validErrorValue = null;
+          } else if (sum_f === 0 || sum_s === 0) {
+            validErrorValue = 1.0;
           } else {
             const rawErrorRate = Math.abs(sum_f - sum_s) / sum_f;
             validErrorValue = rawErrorRate > 1.0 ? 1.0 : rawErrorRate;
           }
 
           // Jika > 0 maka masuk hitungan rata-rata (length bertambah)
-          if (validErrorValue > 0) {
+          if (validErrorValue !== null && validErrorValue > 0) {
             validErrors.push(validErrorValue);
           }
         }
